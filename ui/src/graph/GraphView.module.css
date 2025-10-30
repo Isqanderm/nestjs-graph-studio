@@ -1,0 +1,796 @@
+/* GraphView CSS Modules - DevTools Dark Theme */
+
+/* Container */
+.viewContainer {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 0;
+  max-width: 100%;
+  margin: 0;
+}
+
+/* Toolbar */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px;
+  background-color: #333333;
+  border-bottom: 1px solid #3e3e42;
+}
+
+/* Search Container - Modern Flat Design */
+.searchContainer {
+  position: relative;
+  flex: 1;
+  max-width: 420px;
+}
+
+.searchInputWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 12px;
+  width: 16px;
+  height: 16px;
+  color: #6e7681;
+  pointer-events: none;
+  transition: color 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.searchInput {
+  width: 100%;
+  padding: 10px 14px 10px 38px;
+  background-color: #2d2d30;
+  color: #cccccc;
+  border: 1px solid #3e3e42;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.5;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.searchInput:hover {
+  background-color: #323236;
+  border-color: #4a4a4e;
+}
+
+.searchInput:focus {
+  outline: none;
+  background-color: #323236;
+  border-color: #E0234E;
+  box-shadow: 0 0 0 3px rgba(224, 35, 78, 0.12), 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.searchInput:focus + .searchIcon {
+  color: #E0234E;
+}
+
+.searchInput::placeholder {
+  color: #6e7681;
+  font-weight: 400;
+}
+
+/* Search Suggestions Dropdown - Enhanced Flat Design */
+.searchSuggestions {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  background-color: #2d2d30;
+  border: 1px solid #4a4a4e;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.3);
+  z-index: 50;
+  max-height: 320px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  animation: slideDownFade 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 4px;
+}
+
+@keyframes slideDownFade {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.searchSuggestions::-webkit-scrollbar {
+  width: 8px;
+}
+
+.searchSuggestions::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.searchSuggestions::-webkit-scrollbar-thumb {
+  background-color: #4a4a4e;
+  border-radius: 4px;
+}
+
+.searchSuggestions::-webkit-scrollbar-thumb:hover {
+  background-color: #5a5a5e;
+}
+
+.searchSuggestionItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  margin-bottom: 2px;
+  position: relative;
+}
+
+.searchSuggestionItem:last-child {
+  margin-bottom: 0;
+}
+
+.searchSuggestionItem:hover {
+  background-color: rgba(224, 35, 78, 0.08);
+  transform: translateX(2px);
+}
+
+.searchSuggestionItem:active {
+  background-color: rgba(224, 35, 78, 0.12);
+  transform: translateX(0);
+}
+
+.suggestionContent {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.suggestionIcon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+.suggestionName {
+  color: #e0e0e0;
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: 0.01em;
+}
+
+.suggestionType {
+  color: #9d9d9d;
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 3px 8px;
+  background-color: rgba(157, 157, 157, 0.1);
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+/* Type-specific colors for badges */
+.suggestionType[data-type="module"] {
+  background-color: rgba(117, 190, 255, 0.15);
+  color: #75beff;
+}
+
+.suggestionType[data-type="controller"] {
+  background-color: rgba(137, 209, 133, 0.15);
+  color: #89d185;
+}
+
+.suggestionType[data-type="provider"] {
+  background-color: rgba(220, 220, 170, 0.15);
+  color: #dcdcaa;
+}
+
+.suggestionType[data-type="route"] {
+  background-color: rgba(224, 35, 78, 0.15);
+  color: #E0234E;
+}
+
+/* Settings Dropdown - Modern Flat Design */
+.settingsDropdown {
+  background-color: #2d2d30 !important;
+  border: 1px solid #4a4a4e !important;
+  border-radius: 8px !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+  padding: 8px !important;
+}
+
+.settingsHeader {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 12px 14px !important;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  color: #e0e0e0 !important;
+  letter-spacing: 0.01em !important;
+  margin-bottom: 4px !important;
+}
+
+.settingsHeaderIcon {
+  font-size: 16px;
+  opacity: 0.9;
+}
+
+.settingsContent {
+  padding: 4px;
+}
+
+.settingItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 12px;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  margin-bottom: 4px;
+  position: relative;
+}
+
+.settingItem:last-child {
+  margin-bottom: 0;
+}
+
+.settingItem:hover {
+  background-color: rgba(224, 35, 78, 0.06);
+}
+
+.settingItem:active {
+  background-color: rgba(224, 35, 78, 0.1);
+}
+
+.settingCheckbox {
+  margin-top: 2px;
+  flex-shrink: 0;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.settingInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+
+.settingLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #e0e0e0;
+  letter-spacing: 0.01em;
+}
+
+.settingIcon {
+  font-size: 16px;
+  opacity: 0.85;
+  flex-shrink: 0;
+}
+
+.settingDescription {
+  font-size: 12px;
+  font-weight: 400;
+  color: #9d9d9d;
+  line-height: 1.5;
+  letter-spacing: 0.01em;
+}
+
+/* Graph Container */
+.graphWithPanel {
+  display: flex;
+  gap: 16px;
+  height: calc(100vh - 200px);
+  min-height: 600px;
+  flex: 1;
+  overflow: hidden;
+}
+
+.graphContainer {
+  position: relative;
+  flex: 1;
+  background-color: #1e1e1e;
+  border-radius: 8px;
+  border: 1px solid #3e3e42;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Node Details Panel */
+.nodeDetails {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 320px;
+  background-color: #252526;
+  border: 1px solid #3e3e42;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+  z-index: 10;
+  max-height: calc(100% - 32px);
+  overflow-y: auto;
+}
+
+.nodeDetails h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #cccccc;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #3e3e42;
+}
+
+.detailRow {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.detailRow .label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #9d9d9d;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.detailRow .value {
+  font-size: 14px;
+  color: #cccccc;
+  word-break: break-word;
+}
+
+.nodeDetailsCloseButton {
+  margin-top: 16px;
+  width: 100%;
+  background-color: #E0234E;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.nodeDetailsCloseButton:hover {
+  background-color: #C41E44;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+}
+
+.nodeDetailsCloseButton:active {
+  transform: translateY(0);
+}
+
+/* Missing Dependency Styles */
+.missingDependencySection {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #4a5568;
+}
+
+.missingDependencyLabel {
+  color: #DC2626;
+  font-weight: bold;
+}
+
+.missingDependencyList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.missingDependencyItem {
+  font-size: 12px;
+  color: #DC2626;
+}
+
+.suggestedFix {
+  font-size: 12px;
+  color: #FFA500;
+}
+
+/* Loading State */
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px;
+  color: #9d9d9d;
+  font-size: 16px;
+}
+
+/* Diagnostics Modal Content */
+.diagnosticsContent {
+  padding: 24px;
+}
+
+.diagnosticsTitle {
+  color: #f48771;
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.diagnosticsDescription {
+  color: #9d9d9d;
+  font-size: 14px;
+  margin-bottom: 24px;
+  line-height: 1.6;
+}
+
+.diagnosticsList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.diagnosticItem {
+  background-color: #252526;
+  border: 1px solid #3e3e42;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.diagnosticItemHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.diagnosticItemTitle {
+  color: #cccccc;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.diagnosticItemType {
+  color: #9d9d9d;
+  font-size: 12px;
+  background-color: #2d2d30;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.diagnosticItemDetails {
+  color: #9d9d9d;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.diagnosticItemRequiredBy {
+  margin-top: 12px;
+}
+
+.diagnosticItemRequiredByTitle {
+  color: #9d9d9d;
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.diagnosticItemRequiredByList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.diagnosticItemRequiredByItem {
+  color: #f48771;
+  font-size: 13px;
+  padding-left: 12px;
+}
+
+.diagnosticItemRequiredByItem::before {
+  content: '•';
+  margin-right: 8px;
+}
+
+.diagnosticItemSuggestedFix {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #3e3e42;
+}
+
+.diagnosticItemSuggestedFixLabel {
+  color: #9d9d9d;
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+
+.diagnosticItemSuggestedFixText {
+  color: #89d185;
+  font-size: 13px;
+  font-style: italic;
+}
+
+.diagnosticsActions {
+  margin-top: 24px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* React Flow Overrides */
+/* These styles override React Flow's default styles to match DevTools theme */
+:global(.react-flow__controls) {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+:global(.react-flow__controls-button) {
+  background-color: #252526;
+  border-color: #3e3e42;
+  color: #cccccc;
+}
+
+:global(.react-flow__controls-button:hover) {
+  background-color: #2d2d30;
+}
+
+:global(.react-flow__minimap) {
+  background-color: #252526;
+  border: 1px solid #3e3e42;
+}
+
+/* Custom Node Styles (Global for React Flow) */
+:global(.custom-node) {
+  background-color: #3e4451;
+  border: 1px solid #4a5568;
+  border-radius: 8px;
+  padding: 10px;
+  width: 140px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+:global(.custom-node .node-content) {
+  width: 100%;
+  text-align: center;
+}
+
+:global(.custom-node .node-label) {
+  color: #cccccc;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  word-wrap: break-word;
+  max-width: 130px;
+}
+
+/* Node type specific styles */
+:global(.node-type-module) {
+  background-color: #4a5568;
+  border-color: #5a6c7d;
+}
+
+:global(.node-type-controller) {
+  background-color: #4a4a5e;
+  border-color: #5a5a7d;
+}
+
+:global(.node-type-provider) {
+  background-color: #3e4451;
+  border-color: #4a5568;
+}
+
+:global(.node-type-route) {
+  background-color: #424856;
+  border-color: #525866;
+}
+
+:global(.node-type-missing) {
+  background-color: #2d1f1f;
+  border: 3px dashed #DC2626;
+  border-radius: 50%;
+  width: 80px;
+  height: 80px;
+  background-opacity: 0.3;
+}
+
+:global(.node-type-missing .node-label) {
+  color: #DC2626;
+}
+
+/* Node highlight states */
+:global(.custom-node.highlighted) {
+  border-color: #E0234E;
+  border-width: 3px;
+  box-shadow: 0 0 20px rgba(224, 35, 78, 0.5);
+  z-index: 999;
+  transform: scale(1.05);
+}
+
+/* Selected node styles - Modern Flat Design */
+:global(.react-flow__node.selected) {
+  z-index: 10;
+}
+
+:global(.custom-node.selected) {
+  border: 2px solid #E0234E;
+  background: linear-gradient(135deg, rgba(224, 35, 78, 0.08) 0%, rgba(224, 35, 78, 0.03) 100%);
+  box-shadow:
+    0 0 0 3px rgba(224, 35, 78, 0.15),
+    0 4px 12px rgba(224, 35, 78, 0.25),
+    0 2px 6px rgba(0, 0, 0, 0.4);
+  transform: scale(1.03);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+:global(.custom-node.selected .node-label) {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+/* Selected state for different node types - preserve type colors with accent overlay */
+:global(.node-type-module.selected) {
+  background: linear-gradient(135deg, rgba(224, 35, 78, 0.12) 0%, #4a5568 100%);
+  border-color: #E0234E;
+}
+
+:global(.node-type-controller.selected) {
+  background: linear-gradient(135deg, rgba(224, 35, 78, 0.12) 0%, #4a4a5e 100%);
+  border-color: #E0234E;
+}
+
+:global(.node-type-provider.selected) {
+  background: linear-gradient(135deg, rgba(224, 35, 78, 0.12) 0%, #3e4451 100%);
+  border-color: #E0234E;
+}
+
+:global(.node-type-route.selected) {
+  background: linear-gradient(135deg, rgba(224, 35, 78, 0.12) 0%, #424856 100%);
+  border-color: #E0234E;
+}
+
+/* Hover effect for selected nodes */
+:global(.custom-node.selected:hover) {
+  transform: scale(1.05);
+  box-shadow:
+    0 0 0 4px rgba(224, 35, 78, 0.2),
+    0 6px 16px rgba(224, 35, 78, 0.3),
+    0 3px 8px rgba(0, 0, 0, 0.5);
+}
+
+:global(.custom-node.dimmed) {
+  opacity: 0.3;
+  filter: grayscale(80%);
+}
+
+/* Request-scoped nodes */
+:global(.custom-node.request-scoped) {
+  border-width: 2px;
+  border-color: #FFA500;
+  border-style: solid;
+  background-color: #4a3e2e;
+}
+
+:global(.custom-node.implicit-request-scoped) {
+  border-width: 2px;
+  border-color: #FFD700;
+  border-style: dashed;
+  background-color: #4a4430;
+}
+
+/* Circular dependency nodes */
+:global(.custom-node.circular-dependency-provider) {
+  border-width: 3px;
+  border-color: #FF4444;
+  border-style: double;
+  background-color: #4a2e2e;
+}
+
+:global(.custom-node.circular-dependency-module) {
+  border-width: 4px;
+  border-color: #FF8800;
+  border-style: solid;
+  background-color: #4a3e2e;
+}
+
+:global(.custom-node.has-missing-dependency) {
+  border-width: 3px;
+  border-color: #DC2626;
+  border-style: dotted;
+}
+
+/* Edge styles */
+:global(.react-flow__edge-path) {
+  stroke: #4a5568;
+  stroke-width: 1;
+  opacity: 0.6;
+}
+
+:global(.edge-kind-import .react-flow__edge-path),
+:global(.edge-kind-export .react-flow__edge-path),
+:global(.edge-kind-handles .react-flow__edge-path) {
+  stroke: #5a6c7d;
+}
+
+:global(.edge-kind-missing .react-flow__edge-path) {
+  stroke: #DC2626;
+  stroke-width: 2;
+  stroke-dasharray: 5, 5;
+  opacity: 0.8;
+}
+
+:global(.custom-edge.highlighted .react-flow__edge-path) {
+  stroke: #E0234E;
+  stroke-width: 3;
+  z-index: 999;
+  opacity: 1;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+:global(.custom-edge.dimmed .react-flow__edge-path) {
+  opacity: 0.3;
+  filter: grayscale(80%);
+  transition: all 0.3s ease;
+}
+
+:global(.custom-edge.circular-dependency-provider .react-flow__edge-path) {
+  stroke: #FF4444;
+  stroke-width: 2;
+  stroke-dasharray: 5, 5;
+}
+
+:global(.custom-edge.circular-dependency-module .react-flow__edge-path) {
+  stroke: #FF8800;
+  stroke-width: 3;
+}
+
+/* Arrow markers */
+:global(.react-flow__arrowhead) {
+  fill: #4a5568;
+}
+
+:global(.edge-kind-missing .react-flow__arrowhead) {
+  fill: #DC2626;
+}
+
+:global(.custom-edge.highlighted .react-flow__arrowhead) {
+  fill: #E0234E;
+}
+
+:global(.custom-edge.circular-dependency-provider .react-flow__arrowhead) {
+  fill: #FF4444;
+}
+
+:global(.custom-edge.circular-dependency-module .react-flow__arrowhead) {
+  fill: #FF8800;
+}
+
