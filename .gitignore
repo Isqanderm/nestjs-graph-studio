@@ -40,6 +40,8 @@ build/Release
 # Dependency directories
 node_modules/
 jspm_packages/
+example/node_modules/
+example/dist/
 
 # Snowpack dependency directory (https://snowpack.dev/)
 web_modules/
@@ -124,6 +126,7 @@ dist
 
 # Stores VSCode versions used for testing VSCode extensions
 .vscode-test
+.idea
 
 # yarn v3
 .pnp.*
@@ -137,3 +140,11 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# Playwright
+test-results/
+playwright-report/
+playwright/.cache/
+
+# Example app package-lock (uses parent package)
+example/package-lock.json

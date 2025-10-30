@@ -1,0 +1,167 @@
+@import "tailwindcss";
+
+@theme {
+  /* NestJS Brand Colors */
+  --color-nest-red: #E0234E;
+  --color-nest-red-dark: #C41E44;
+  --color-nest-red-light: #FF2D55;
+
+  /* DevTools Color Palette */
+  --color-devtools-bg: #1e1e1e;
+  --color-devtools-sidebar-bg: #252526;
+  --color-devtools-header-bg: #2d2d30;
+  --color-devtools-toolbar-bg: #333333;
+  --color-devtools-hover-bg: rgba(255, 255, 255, 0.05);
+  --color-devtools-active-bg: rgba(224, 35, 78, 0.15);
+  --color-devtools-border: #3e3e42;
+  --color-devtools-icon-inactive: #9d9d9d;
+  --color-devtools-icon-hover: #e0e0e0;
+  --color-devtools-accent: #E0234E;
+
+  /* Status Colors */
+  --color-status-green: #89d185;
+  --color-status-blue: #75beff;
+  --color-status-yellow: #dcdcaa;
+  --color-status-red: #f48771;
+
+  /* Semantic Background Colors */
+  --color-bg-primary: #1e1e1e;
+  --color-bg-secondary: #252526;
+  --color-bg-tertiary: #2d2d30;
+  --color-bg-elevated: #333333;
+
+  /* Text Colors */
+  --color-text-primary: #cccccc;
+  --color-text-secondary: #9d9d9d;
+  --color-text-tertiary: #6e7681;
+
+  /* Border Colors */
+  --color-border: #3e3e42;
+  --color-border-light: #2d2d30;
+
+  /* Accent Colors */
+  --color-accent: #E0234E;
+  --color-accent-hover: #C41E44;
+  --color-accent-light: rgba(224, 35, 78, 0.15);
+
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.6);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.7);
+}
+
+/* Keep legacy CSS variables for backward compatibility */
+:root {
+  --nest-red: #E0234E;
+  --nest-red-dark: #C41E44;
+  --nest-red-light: #FF2D55;
+  --devtools-bg: #1e1e1e;
+  --devtools-sidebar-bg: #252526;
+  --devtools-header-bg: #2d2d30;
+  --devtools-toolbar-bg: #333333;
+  --devtools-hover-bg: rgba(255, 255, 255, 0.05);
+  --devtools-active-bg: rgba(224, 35, 78, 0.15);
+  --devtools-border: #3e3e42;
+  --devtools-icon-inactive: #9d9d9d;
+  --devtools-icon-hover: #e0e0e0;
+  --devtools-accent: #E0234E;
+  --devtools-green: #89d185;
+  --devtools-blue: #75beff;
+  --devtools-yellow: #dcdcaa;
+  --devtools-red: #f48771;
+  --bg-primary: #1e1e1e;
+  --bg-secondary: #252526;
+  --bg-tertiary: #2d2d30;
+  --bg-elevated: #333333;
+  --text-primary: #cccccc;
+  --text-secondary: #9d9d9d;
+  --text-tertiary: #6e7681;
+  --border-color: #3e3e42;
+  --border-color-light: #2d2d30;
+  --accent-color: var(--nest-red);
+  --accent-hover: var(--nest-red-dark);
+  --accent-light: rgba(224, 35, 78, 0.15);
+  --success-color: #89d185;
+  --error-color: #f48771;
+  --warning-color: #dcdcaa;
+  --info-color: #75beff;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.6);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.7);
+}
+
+body,
+html {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.6;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* Minimal global button and input styles for backward compatibility with legacy components */
+/* These styles only apply to buttons/inputs WITHOUT classes (legacy components) */
+/* New components should use Tailwind CSS classes or the Button/Input components from @/components/ui */
+
+/* Only style buttons that don't have any classes (legacy buttons) */
+button:not([class]) {
+  background-color: var(--accent-color);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  box-shadow: var(--shadow-sm);
+}
+
+button:not([class]):hover {
+  background-color: var(--accent-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+button:not([class]):active {
+  transform: translateY(0);
+}
+
+button:not([class]):disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Only style inputs/selects that don't have classes (legacy inputs) */
+input:not([class]), select:not([class]) {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+input:not([class]):focus, select:not([class]):focus {
+  outline: none;
+  border-color: var(--accent-color);
+}
+

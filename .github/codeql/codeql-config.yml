@@ -1,0 +1,12 @@
+name: "CodeQL Config"
+
+paths-ignore:
+  - "example/**"
+  - "e2e/**"
+  - "ui/src/**/*.test.tsx"
+  - "ui/src/**/*.test.ts"
+  - "**/__tests__/**"
+  - "**/test/**"
+  - "**/*.test.ts"
+  - "**/*.spec.ts"
+

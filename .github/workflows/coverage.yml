@@ -1,0 +1,161 @@
+name: Coverage Report
+
+on:
+  push:
+    branches:
+      - main  # Only run on main branch to avoid duplication with ci.yml
+
+# Explicit permissions following least privilege principle
+permissions:
+  contents: read
+  pull-requests: write  # For PR comments
+
+jobs:
+  coverage:
+    name: Generate Detailed Coverage Report
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history for accurate coverage comparison
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run backend tests with coverage
+        run: npm run test:coverage
+
+      - name: Run UI tests with coverage
+        run: npm run test:ui:coverage
+
+      - name: Check backend coverage thresholds
+        run: |
+          node -e "
+            const fs = require('fs');
+            const summary = JSON.parse(fs.readFileSync('coverage/coverage-summary.json', 'utf8'));
+            const total = summary.total;
+            
+            const thresholds = {
+              statements: 90,
+              branches: 80,
+              functions: 90,
+              lines: 90
+            };
+            
+            let failed = false;
+            
+            console.log('Backend Coverage Thresholds:');
+            for (const [metric, threshold] of Object.entries(thresholds)) {
+              const actual = total[metric].pct;
+              if (actual < threshold) {
+                console.error(\`❌ ${metric} coverage (${actual}%) is below threshold (${threshold}%)\`);
+                failed = true;
+              } else {
+                console.log(\`✅ ${metric} coverage: ${actual}% (threshold: ${threshold}%)\`);
+              }
+            }
+            
+            if (failed) {
+              console.error('\\n❌ Backend coverage thresholds not met!');
+              process.exit(1);
+            }
+          "
+
+      - name: Check UI coverage thresholds
+        run: |
+          node -e "
+            const fs = require('fs');
+            const summary = JSON.parse(fs.readFileSync('ui/coverage/coverage-summary.json', 'utf8'));
+            const total = summary.total;
+            
+            const thresholds = {
+              statements: 70,
+              branches: 70,
+              functions: 70,
+              lines: 70
+            };
+            
+            let failed = false;
+            
+            console.log('UI Coverage Thresholds:');
+            for (const [metric, threshold] of Object.entries(thresholds)) {
+              const actual = total[metric].pct;
+              if (actual < threshold) {
+                console.error(\`❌ ${metric} coverage (${actual}%) is below threshold (${threshold}%)\`);
+                failed = true;
+              } else {
+                console.log(\`✅ ${metric} coverage: ${actual}% (threshold: ${threshold}%)\`);
+              }
+            }
+            
+            if (failed) {
+              console.error('\\n❌ UI coverage thresholds not met!');
+              process.exit(1);
+            }
+          "
+
+      - name: Generate combined coverage report
+        run: |
+          echo "# 📊 Detailed Coverage Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          echo "## Backend Coverage" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ -f coverage/coverage-summary.json ]; then
+            node -e "
+              const fs = require('fs');
+              const summary = JSON.parse(fs.readFileSync('coverage/coverage-summary.json', 'utf8'));
+              const total = summary.total;
+              console.log('| Metric | Coverage | Threshold | Status |');
+              console.log('|--------|----------|-----------|--------|');
+              console.log('| Statements | ' + total.statements.pct + '% | 90% | ' + (total.statements.pct >= 90 ? '✅ Pass' : '❌ Fail') + ' |');
+              console.log('| Branches | ' + total.branches.pct + '% | 80% | ' + (total.branches.pct >= 80 ? '✅ Pass' : '❌ Fail') + ' |');
+              console.log('| Functions | ' + total.functions.pct + '% | 90% | ' + (total.functions.pct >= 90 ? '✅ Pass' : '❌ Fail') + ' |');
+              console.log('| Lines | ' + total.lines.pct + '% | 90% | ' + (total.lines.pct >= 90 ? '✅ Pass' : '❌ Fail') + ' |');
+            " >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## UI Coverage" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ -f ui/coverage/coverage-summary.json ]; then
+            node -e "
+              const fs = require('fs');
+              const summary = JSON.parse(fs.readFileSync('ui/coverage/coverage-summary.json', 'utf8'));
+              const total = summary.total;
+              console.log('| Metric | Coverage | Threshold | Status |');
+              console.log('|--------|----------|-----------|--------|');
+              console.log('| Statements | ' + total.statements.pct + '% | 70% | ' + (total.statements.pct >= 70 ? '✅ Pass' : '❌ Fail') + ' |');
+              console.log('| Branches | ' + total.branches.pct + '% | 70% | ' + (total.branches.pct >= 70 ? '✅ Pass' : '❌ Fail') + ' |');
+              console.log('| Functions | ' + total.functions.pct + '% | 70% | ' + (total.functions.pct >= 70 ? '✅ Pass' : '❌ Fail') + ' |');
+              console.log('| Lines | ' + total.lines.pct + '% | 70% | ' + (total.lines.pct >= 70 ? '✅ Pass' : '❌ Fail') + ' |');
+            " >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./coverage/coverage-final.json,./ui/coverage/coverage-final.json
+          flags: combined
+          name: combined-coverage
+          fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Upload coverage artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: combined-coverage-report
+          path: |
+            coverage/
+            ui/coverage/
+          retention-days: 30
+
