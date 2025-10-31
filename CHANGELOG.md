@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.1] - 2025-10-31
+
+### Security
+- **Fixed 5 High-Severity CodeQL Alerts** in example application:
+  - Remote property injection vulnerability (prototype pollution)
+  - Incomplete multi-character sanitization (script tags)
+  - Incomplete multi-character sanitization (iframe tags)
+  - Bad HTML filtering regexp
+  - Reflected XSS vulnerability
+- **Improved Input Sanitization** - Implemented whitelist-based property filtering in example application
+- **Enhanced Security Workflow** - Fixed dependency-review to be non-blocking when Dependency Graph is not enabled
+
+### Changed
+- **Example Application** - Updated `SanitizeInputPipe` with secure implementation
+- **CI/CD** - Improved security workflow configuration
+
+### Documentation
+- **Added Screenshots** - Added visual examples to README.md
+
 ## [0.1.0] - 2025-10-31
 
 ### Added
@@ -126,6 +145,7 @@ For detailed documentation, see [README.md](README.md).
 
 ---
 
+[0.1.1]: https://github.com/Isqanderm/nestjs-graph-studio/releases/tag/v0.1.1
 [0.1.0]: https://github.com/Isqanderm/nestjs-graph-studio/releases/tag/v0.1.0
-[Unreleased]: https://github.com/Isqanderm/nestjs-graph-studio/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/Isqanderm/nestjs-graph-studio/compare/v0.1.1...HEAD
 
