@@ -1016,7 +1016,7 @@ function GraphViewInner() {
       </div>
 
       <div className={styles.graphWithPanel}>
-        <div className={styles.graphContainer}>
+        <div className={styles.graphContainer} data-testid="graph-container">
           <ReactFlow
             nodes={nodes}
             edges={edges}

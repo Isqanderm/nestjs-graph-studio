@@ -15,19 +15,19 @@ export class GraphViewPage {
 
   constructor(page: Page) {
     this.page = page;
-    this.graphContainer = page.locator('#cy, [data-testid="graph-container"], .graph-view');
-    this.searchInput = page.locator('input[placeholder*="Search" i], input[type="search"]');
-    this.nodeDetailsPanel = page.locator('[data-testid="node-details"], .node-details, aside');
-    this.layoutButtons = page.locator('button[data-layout], button:has-text("Layout")');
-    this.zoomControls = page.locator('[data-testid="zoom-controls"], .zoom-controls');
-    this.filterControls = page.locator('[data-testid="filter-controls"], .filter-controls');
+    this.graphContainer = page.locator('[data-testid="graph-container"]');
+    this.searchInput = page.locator('input[placeholder*="Search" i]');
+    this.nodeDetailsPanel = page.locator('[data-testid="node-details"]');
+    this.layoutButtons = page.locator('button[data-layout]');
+    this.zoomControls = page.locator('[data-testid="zoom-controls"]');
+    this.filterControls = page.locator('[data-testid="filter-controls"]');
   }
 
   /**
    * Navigate to the Graph view
    */
   async goto() {
-    await this.page.goto('/');
+    await this.page.goto('/graph-studio');
     await this.page.waitForLoadState('networkidle');
   }
 
@@ -70,7 +70,7 @@ export class GraphViewPage {
   async clickNode(nodeName: string) {
     // First search for the node to highlight it
     await this.searchNode(nodeName);
-    
+
     // Click on the graph container (Cytoscape will handle the click)
     await this.graphContainer.click({ position: { x: 100, y: 100 } });
   }
