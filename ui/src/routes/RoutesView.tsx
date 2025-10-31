@@ -71,7 +71,7 @@ function RoutesView() {
       </div>
 
       <div className={styles.tableContainer}>
-        <table className={styles.table}>
+        <table className={styles.table} data-testid="routes-table">
           <thead>
             <tr>
               <th>Method</th>
