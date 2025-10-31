@@ -1,6 +1,5 @@
 import { test as base, expect } from '@playwright/test';
 import { GraphViewPage } from '../pages/GraphViewPage';
-import { LiveViewPage } from '../pages/LiveViewPage';
 import { RoutesViewPage } from '../pages/RoutesViewPage';
 
 /**
@@ -8,7 +7,6 @@ import { RoutesViewPage } from '../pages/RoutesViewPage';
  */
 type GraphStudioFixtures = {
   graphViewPage: GraphViewPage;
-  liveViewPage: LiveViewPage;
   routesViewPage: RoutesViewPage;
 };
 
@@ -20,12 +18,7 @@ export const test = base.extend<GraphStudioFixtures>({
     const graphViewPage = new GraphViewPage(page);
     await use(graphViewPage);
   },
-  
-  liveViewPage: async ({ page }, use) => {
-    const liveViewPage = new LiveViewPage(page);
-    await use(liveViewPage);
-  },
-  
+
   routesViewPage: async ({ page }, use) => {
     const routesViewPage = new RoutesViewPage(page);
     await use(routesViewPage);

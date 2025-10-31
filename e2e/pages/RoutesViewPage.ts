@@ -13,17 +13,17 @@ export class RoutesViewPage {
 
   constructor(page: Page) {
     this.page = page;
-    this.routesTable = page.locator('[data-testid="routes-table"], table, .routes-table');
-    this.searchInput = page.locator('input[placeholder*="Search" i], input[type="search"]');
-    this.methodFilters = page.locator('[data-testid="method-filters"], .method-filters');
-    this.routeRows = page.locator('tbody tr, [data-testid="route-row"]');
+    this.routesTable = page.locator('[data-testid="routes-table"]');
+    this.searchInput = page.locator('input[placeholder*="Search" i]');
+    this.methodFilters = page.locator('[data-testid="method-filters"]');
+    this.routeRows = page.locator('[data-testid="routes-table"] tbody tr');
   }
 
   /**
    * Navigate to the Routes view
    */
   async goto() {
-    await this.page.goto('/routes');
+    await this.page.goto('/graph-studio#/routes');
     await this.page.waitForLoadState('networkidle');
   }
 
