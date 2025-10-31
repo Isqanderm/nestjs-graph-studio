@@ -1,0 +1,137 @@
+/* RoutesView CSS Modules - DevTools Dark Theme */
+
+/* View Container */
+.viewContainer {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 0;
+  max-width: 100%;
+  margin: 0;
+}
+
+/* View Header */
+.viewHeader {
+  padding: 24px;
+  background-color: #2d2d30;
+  border-bottom: 1px solid #3e3e42;
+}
+
+.viewHeader h2 {
+  font-size: 24px;
+  font-weight: 600;
+  color: #cccccc;
+  margin-bottom: 8px;
+}
+
+.viewHeader p {
+  font-size: 14px;
+  color: #9d9d9d;
+  margin: 0;
+}
+
+/* Filter Container */
+.filterContainer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px;
+  background-color: #333333;
+  border-bottom: 1px solid #3e3e42;
+}
+
+/* Filter Input */
+.filterInput {
+  flex: 1;
+  max-width: 28rem; /* max-w-md */
+  padding: 8px 12px;
+  background-color: #252526;
+  color: #cccccc;
+  border: 1px solid #3e3e42;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.filterInput:focus {
+  outline: none;
+  border-color: #E0234E;
+  box-shadow: 0 0 0 1px rgba(224, 35, 78, 0.2);
+}
+
+.filterInput::placeholder {
+  color: #6e7681;
+}
+
+/* Table Container */
+.tableContainer {
+  overflow-x: auto;
+  flex: 1;
+}
+
+/* Table Styles */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: #252526;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.table thead {
+  background-color: #2d2d30;
+}
+
+.table th {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #3e3e42;
+  font-weight: 600;
+  color: #cccccc;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.table tbody tr {
+  transition: background-color 0.15s ease;
+}
+
+.table tbody tr:hover {
+  background-color: #2d2d30;
+}
+
+.table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #3e3e42;
+  color: #cccccc;
+  font-size: 14px;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Path Cell */
+.pathCell {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 13px;
+  color: #cccccc;
+}
+
+/* Loading State */
+.loadingContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+}
+
+.loadingText {
+  color: #cccccc;
+  font-size: 18px;
+}
+
+/* Dialog Content Styles (keeping Tailwind for Dialog components) */
+/* These are applied via className prop in the component */
+
