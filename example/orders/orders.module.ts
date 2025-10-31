@@ -9,6 +9,7 @@ import { RolesGuard } from './guards/roles.guard';
 import { LoggingInterceptor } from './interceptors/logging.interceptor';
 import { TransformInterceptor } from './interceptors/transform.interceptor';
 import { ParseOrderIdPipe } from './pipes/parse-order-id.pipe';
+import { SanitizeInputPipe } from './pipes/sanitize-input.pipe';
 import { UsersModule } from '../users/users.module';
 
 /**
@@ -31,8 +32,9 @@ import { UsersModule } from '../users/users.module';
     LoggingInterceptor,
     TransformInterceptor,
     ParseOrderIdPipe,
+    SanitizeInputPipe,
   ],
-  exports: [OrdersService],
+  exports: [OrdersService, SanitizeInputPipe],
 })
 export class OrdersModule {}
 
