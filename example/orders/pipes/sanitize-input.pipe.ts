@@ -68,14 +68,20 @@ export class SanitizeInputPipe implements PipeTransform {
    * This prevents remote property injection attacks.
    */
   private sanitizeObject(value: any): any {
-    const sanitized: any = Array.isArray(value) ? [] : {};
+    if (Array.isArray(value)) {
+      // For arrays, sanitize each element
+      return value.map((item) => this.transform(item));
+    }
+
+    // For objects, only allow whitelisted properties
+    const sanitized: any = {};
 
     for (const key in value) {
       if (Object.prototype.hasOwnProperty.call(value, key)) {
         // Only process whitelisted properties to prevent prototype pollution
-        if (Array.isArray(value) || this.ALLOWED_PROPERTIES.has(key)) {
+        if (this.ALLOWED_PROPERTIES.has(key)) {
           // Prefix with $ to prevent __proto__ and other dangerous properties
-          const safeKey = Array.isArray(value) ? key : `$${key}`;
+          const safeKey = `$${key}`;
           sanitized[safeKey] = this.transform(value[key]);
         }
       }
