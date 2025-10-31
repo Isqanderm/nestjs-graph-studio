@@ -1,24 +1,21 @@
-import { Controller, Get, Post, Body, Param } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, UsePipes } from '@nestjs/common';
 import { UsersService } from './users.service';
+import { SanitizeInputPipe } from '../orders/pipes/sanitize-input.pipe';
 
 /**
- * ⚠️ WARNING: DEMONSTRATION CODE ONLY - NOT FOR PRODUCTION USE
+ * Users controller demonstrating NestJS controller functionality.
  *
- * This controller has known security vulnerabilities:
- * 1. Reflected XSS vulnerability - user input is returned without sanitization
- * 2. No input validation - accepts 'any' type for createUserDto
- * 3. No authentication or authorization checks
- * 4. No rate limiting or request throttling
+ * Security improvements:
+ * 1. Uses SanitizeInputPipe to prevent XSS attacks
+ * 2. Input is sanitized before processing
  *
- * For production use, please implement:
+ * For production use, additionally implement:
  * - Proper DTO classes with class-validator decorators
- * - Input sanitization and validation
  * - Authentication guards (@UseGuards(AuthGuard))
  * - Authorization checks (role-based access control)
  * - Rate limiting (@Throttle decorator)
- * - Output encoding to prevent XSS
  *
- * This code is provided solely to demonstrate NestJS controller functionality
+ * This code is provided to demonstrate NestJS controller functionality
  * in the context of the Graph Studio visualization tool.
  */
 @Controller('users')
@@ -32,15 +29,18 @@ export class UsersController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.usersService.findOne(id);
+    // Sanitize the ID parameter to prevent XSS
+    const sanitizedId = id.replace(/[<>]/g, '');
+    return this.usersService.findOne(sanitizedId);
   }
 
   /**
-   * ⚠️ WARNING: This endpoint accepts unvalidated input (any type)
-   * and may return user-provided data without sanitization (XSS risk)
+   * Creates a new user with sanitized input to prevent XSS attacks.
    */
   @Post()
+  @UsePipes(SanitizeInputPipe)
   create(@Body() createUserDto: any) {
+    // Input is automatically sanitized by SanitizeInputPipe
     return this.usersService.create(createUserDto);
   }
 }

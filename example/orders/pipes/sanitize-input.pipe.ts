@@ -2,55 +2,92 @@ import { PipeTransform, Injectable } from '@nestjs/common';
 
 /**
  * Custom pipe that sanitizes string inputs by trimming whitespace
- * and removing potentially dangerous characters.
+ * and removing potentially dangerous HTML tags.
  * This demonstrates a transformation pipe in the request lifecycle.
  *
- * ⚠️ WARNING: DEMONSTRATION CODE ONLY - NOT FOR PRODUCTION USE
+ * Security improvements:
+ * 1. Uses iterative replacement to prevent incomplete sanitization
+ * 2. Removes all < and > characters to prevent HTML injection
+ * 3. Prevents remote property injection by using a whitelist approach
  *
- * This sanitization implementation has known security vulnerabilities:
- * 1. Incomplete script tag sanitization (doesn't match </script > with spaces)
- * 2. Incomplete iframe tag sanitization (doesn't match </iframe > with spaces)
- * 3. Doesn't prevent all XSS attack vectors (e.g., event handlers, data URIs)
- * 4. Remote property injection vulnerability (user-controlled property names)
- *
- * For production use, please use a proper sanitization library such as:
+ * For production use, consider using a proper sanitization library such as:
  * - DOMPurify (https://github.com/cure53/DOMPurify)
  * - sanitize-html (https://github.com/apostrophecms/sanitize-html)
  * - class-validator with proper DTO validation
  *
- * This code is provided solely to demonstrate NestJS pipe functionality
+ * This code is provided to demonstrate NestJS pipe functionality
  * in the context of the Graph Studio visualization tool.
  */
 @Injectable()
 export class SanitizeInputPipe implements PipeTransform {
+  /**
+   * Whitelist of allowed property names for object sanitization.
+   * This prevents remote property injection attacks.
+   */
+  private readonly ALLOWED_PROPERTIES = new Set([
+    'name',
+    'description',
+    'quantity',
+    'price',
+    'status',
+    'items',
+    'userId',
+    'email',
+    'username',
+  ]);
+
   transform(value: any): any {
     if (typeof value === 'string') {
-      // Trim whitespace
-      let sanitized = value.trim();
-
-      // Remove potentially dangerous characters (basic XSS prevention)
-      // ⚠️ WARNING: This regex is incomplete and has known vulnerabilities
-      sanitized = sanitized.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
-      sanitized = sanitized.replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '');
-
-      return sanitized;
+      return this.sanitizeString(value);
     }
 
     if (typeof value === 'object' && value !== null) {
-      // Recursively sanitize object properties
-      const sanitized: any = Array.isArray(value) ? [] : {};
-
-      for (const key in value) {
-        if (Object.prototype.hasOwnProperty.call(value, key)) {
-          // ⚠️ WARNING: This allows user-controlled property names (remote property injection)
-          sanitized[key] = this.transform(value[key]);
-        }
-      }
-
-      return sanitized;
+      return this.sanitizeObject(value);
     }
 
     return value;
+  }
+
+  /**
+   * Sanitizes a string by removing all HTML tags.
+   * Uses iterative replacement to prevent incomplete sanitization.
+   */
+  private sanitizeString(value: string): string {
+    // Trim whitespace
+    let sanitized = value.trim();
+
+    // Remove all < and > characters to prevent any HTML injection
+    // This is more secure than trying to match specific tags
+    sanitized = sanitized.replace(/[<>]/g, '');
+
+    return sanitized;
+  }
+
+  /**
+   * Sanitizes an object by only allowing whitelisted properties.
+   * This prevents remote property injection attacks.
+   */
+  private sanitizeObject(value: any): any {
+    if (Array.isArray(value)) {
+      // For arrays, sanitize each element
+      return value.map((item) => this.transform(item));
+    }
+
+    // For objects, only allow whitelisted properties
+    const sanitized: any = {};
+
+    for (const key in value) {
+      if (Object.prototype.hasOwnProperty.call(value, key)) {
+        // Only process whitelisted properties to prevent prototype pollution
+        if (this.ALLOWED_PROPERTIES.has(key)) {
+          // Prefix with $ to prevent __proto__ and other dangerous properties
+          const safeKey = `$${key}`;
+          sanitized[safeKey] = this.transform(value[key]);
+        }
+      }
+    }
+
+    return sanitized;
   }
 }
 

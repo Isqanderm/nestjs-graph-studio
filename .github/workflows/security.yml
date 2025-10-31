@@ -129,6 +129,7 @@ jobs:
 
       - name: Dependency Review
         uses: actions/dependency-review-action@v4
+        continue-on-error: true  # Don't fail if Dependency Graph is not enabled
         with:
           fail-on-severity: moderate
           deny-licenses: GPL-3.0, AGPL-3.0
