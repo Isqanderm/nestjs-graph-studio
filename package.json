@@ -14,7 +14,7 @@
   "scripts": {
     "build:ui": "vite build --config ui/vite.config.ts && node scripts/copy-ui.js",
     "build:lib": "tsup src/index.ts --format cjs,esm --dts --clean",
-    "build": "npm run build:ui && npm run build:lib",
+    "build": "npm run build:lib && npm run build:ui",
     "dev:ui": "vite --config ui/vite.config.ts",
     "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
     "example": "cd example && npm start",
