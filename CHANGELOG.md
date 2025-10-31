@@ -5,6 +5,50 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.2] - 2025-10-31
+
+### Documentation
+- **Enhanced README.md** - Significantly improved repository presentation
+  - Added centered header with compelling tagline and visual appeal
+  - Added comprehensive "About" section explaining the tool's value proposition
+  - Expanded features section with detailed subsections for each capability
+  - Improved quick start guide with better code examples and emojis
+  - Clearer configuration options with better formatting
+  - Added detailed use cases for different environments
+  - Added API endpoints section with example responses
+  - Enhanced TypeScript support section with collapsible type definitions
+  - Improved requirements and compatibility sections with tables
+  - Added comprehensive troubleshooting guide with solutions
+  - Enhanced security considerations with practical examples
+  - Better organized contributing section
+  - Improved support and community resources
+  - Added acknowledgments and project stats
+
+- **Added CONTRIBUTING.md** - Comprehensive contributing guidelines
+  - Code of conduct and contribution standards
+  - Detailed development setup instructions
+  - Project structure overview
+  - Development workflow guidelines
+  - Testing requirements and examples (unit, UI, E2E)
+  - Coding standards and style guide
+  - Commit message guidelines (Conventional Commits)
+  - Pull request process and templates
+  - Bug reporting template
+  - Feature suggestion guidelines
+
+### Repository
+- **Updated GitHub repository settings**
+  - Added clear, concise repository description
+  - Added 10 relevant topics/tags for better discoverability
+  - Set repository homepage URL to npm package
+
+### Impact
+- **First Impressions** - Professional, welcoming appearance with clear value proposition
+- **Discoverability** - Better SEO with relevant topics and comprehensive description
+- **User Experience** - Easier to understand what the tool does and how to use it
+- **Developer Experience** - Clear contributing guidelines encourage community participation
+- **Professional Polish** - Consistent formatting, emojis for visual appeal, and comprehensive documentation
+
 ## [0.1.1] - 2025-10-31
 
 ### Security
@@ -145,7 +189,8 @@ For detailed documentation, see [README.md](README.md).
 
 ---
 
+[0.1.2]: https://github.com/Isqanderm/nestjs-graph-studio/releases/tag/v0.1.2
 [0.1.1]: https://github.com/Isqanderm/nestjs-graph-studio/releases/tag/v0.1.1
 [0.1.0]: https://github.com/Isqanderm/nestjs-graph-studio/releases/tag/v0.1.0
-[Unreleased]: https://github.com/Isqanderm/nestjs-graph-studio/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/Isqanderm/nestjs-graph-studio/compare/v0.1.2...HEAD
 
