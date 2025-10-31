@@ -427,7 +427,7 @@ jobs:
         run: npm ci
 
       - name: Install example app dependencies
-        run: cd example && npm ci
+        run: cd example && npm install
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
