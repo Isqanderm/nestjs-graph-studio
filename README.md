@@ -9,6 +9,16 @@
 
 **Local DevTools for NestJS applications** with dependency injection graph visualization. Run entirely locally without any external dependencies or SaaS services.
 
+## Screenshots
+
+### DI Graph Visualization
+![DI Graph View](docs/screenshot-graph-view.png)
+*Interactive dependency injection graph with missing dependency detection*
+
+### Route Explorer
+![Routes View](docs/screenshot-routes-view.png)
+*Browse all routes with their execution chains (guards, pipes, interceptors)*
+
 ## Features
 
 - 🔍 **DI Graph Visualization** - Interactive visualization of your entire dependency injection graph
