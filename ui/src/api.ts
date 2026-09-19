@@ -1,4 +1,4 @@
-import { GraphSnapshot, RouteMeta } from './types';
+import { GraphSnapshot, RouteMeta, IssueReport } from './types';
 
 const BASE_URL = window.location.origin + '/graph-studio';
 
@@ -14,6 +14,14 @@ export async function fetchRoutes(): Promise<{ routes: RouteMeta[]; stats: any }
   const response = await fetch(`${BASE_URL}/routes`);
   if (!response.ok) {
     throw new Error(`Failed to fetch routes: ${response.statusText}`);
+  }
+  return response.json();
+}
+
+export async function fetchIssues(): Promise<IssueReport> {
+  const response = await fetch(`${BASE_URL}/issues`);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch issues: ${response.statusText}`);
   }
   return response.json();
 }

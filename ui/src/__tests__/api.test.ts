@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { fetchGraph, fetchRoutes, fetchHealth } from '../api';
+import { fetchGraph, fetchRoutes, fetchHealth, fetchIssues } from '../api';
 
 describe('API Client', () => {
   const originalFetch = global.fetch;
@@ -177,6 +177,55 @@ describe('API Client', () => {
 
       expect(result.routes).toEqual([]);
       expect(result.stats.totalRoutes).toBe(0);
+    });
+  });
+
+  describe('fetchIssues', () => {
+    it('should fetch issue report successfully', async () => {
+      const mockIssueReport = {
+        createdAt: '2024-01-01T00:00:00Z',
+        issues: [
+          {
+            id: 'unused-provider:provider:AppModule:OrphanService',
+            category: 'unused-provider',
+            severity: 'warning',
+            title: 'Unused provider: OrphanService',
+            description: 'OrphanService is never injected anywhere.',
+            nodeIds: ['provider:AppModule:OrphanService'],
+            suggestedFix: 'Remove this provider if unused.',
+          },
+        ],
+        summary: { error: 0, warning: 1, info: 0 },
+      };
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockIssueReport,
+      });
+
+      const result = await fetchIssues();
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/graph-studio/issues')
+      );
+      expect(result).toEqual(mockIssueReport);
+    });
+
+    it('should throw error when fetch fails', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        statusText: 'Internal Server Error',
+      });
+
+      await expect(fetchIssues()).rejects.toThrow(
+        'Failed to fetch issues: Internal Server Error'
+      );
+    });
+
+    it('should handle network errors', async () => {
+      mockFetch.mockRejectedValueOnce(new Error('Network error'));
+
+      await expect(fetchIssues()).rejects.toThrow('Network error');
     });
   });
 
