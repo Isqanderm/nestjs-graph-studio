@@ -774,10 +774,18 @@ function GraphViewInner() {
       })
     );
 
-    reactFlowInstance.fitView({ nodes: matchingNodes, padding: 0.3 });
+    // Deferred via setTimeout(0) so it runs after the "convert graph data"
+    // effect's own deferred fitView({ padding: 0.2 }) on initial mount —
+    // otherwise that later macrotask silently re-fits the whole graph and
+    // undoes this zoom (confirmed via manual verification: the highlighted/
+    // dimmed classNames were applied correctly, but the viewport stayed at
+    // the full-graph fit instead of centering on the focused nodes).
+    const fitViewTimer = setTimeout(() => {
+      reactFlowInstance.fitView({ nodes: matchingNodes, padding: 0.3 });
+    }, 0);
     setFocusNodeIds(null);
 
-    const timer = setTimeout(() => {
+    const clearHighlightTimer = setTimeout(() => {
       setNodes((nds) =>
         nds.map((n) => ({
           ...n,
@@ -792,7 +800,10 @@ function GraphViewInner() {
       );
     }, 4000);
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(fitViewTimer);
+      clearTimeout(clearHighlightTimer);
+    };
   }, [focusNodeIds, nodes, reactFlowInstance, setNodes, setEdges, setFocusNodeIds]);
 
   const handleSearch = () => {
