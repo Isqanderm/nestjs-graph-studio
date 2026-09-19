@@ -17,4 +17,10 @@ export {
   NodeType,
   Stage,
 } from './snapshot/models';
+export {
+  Issue,
+  IssueReport,
+  IssueSeverity,
+  IssueCategory,
+} from './analysis/models';
 
