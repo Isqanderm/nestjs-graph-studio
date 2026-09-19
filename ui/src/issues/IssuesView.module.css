@@ -1,0 +1,116 @@
+/* IssuesView CSS Modules - DevTools Dark Theme (mirrors RoutesView.module.css) */
+
+.viewContainer {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 0;
+  max-width: 100%;
+  margin: 0;
+}
+
+.viewHeader {
+  padding: 24px;
+  background-color: #2d2d30;
+  border-bottom: 1px solid #3e3e42;
+}
+
+.viewHeader h2 {
+  font-size: 24px;
+  font-weight: 600;
+  color: #cccccc;
+  margin-bottom: 8px;
+}
+
+.viewHeader p {
+  font-size: 14px;
+  color: #9d9d9d;
+  margin: 0;
+}
+
+.summaryBar {
+  display: flex;
+  gap: 8px;
+  padding: 16px 24px;
+  background-color: #333333;
+  border-bottom: 1px solid #3e3e42;
+}
+
+.summaryBadge {
+  font-size: 13px;
+  padding: 4px 10px;
+}
+
+.emptyState {
+  padding: 48px 24px;
+  text-align: center;
+  color: #9d9d9d;
+  font-size: 14px;
+}
+
+.issueGroups {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+}
+
+.issueGroup {
+  margin-bottom: 24px;
+}
+
+.issueGroupTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: #cccccc;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.issueItem {
+  background-color: #252526;
+  border: 1px solid #3e3e42;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.issueItemHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.issueTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: #cccccc;
+}
+
+.issueDescription {
+  font-size: 13px;
+  color: #9d9d9d;
+  margin: 0 0 8px 0;
+  line-height: 1.5;
+}
+
+.issueSuggestedFix {
+  font-size: 13px;
+  color: #cccccc;
+  background-color: #2d2d30;
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin: 0 0 12px 0;
+}
+
+.loadingContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+}
+
+.loadingText {
+  color: #cccccc;
+  font-size: 18px;
+}
