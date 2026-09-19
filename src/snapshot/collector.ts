@@ -158,7 +158,7 @@ export class SnapshotCollector {
       return;
     }
 
-    const providerName = wrapper.name || wrapper.metatype.name || 'UnknownProvider';
+    const providerName = this.safeTokenName(wrapper.name) || wrapper.metatype.name || 'UnknownProvider';
     const providerId = `provider:${moduleName}:${providerName}`;
 
     // Add provider node only if it doesn't already exist
@@ -289,6 +289,23 @@ export class SnapshotCollector {
     };
   }
 
+  /**
+   * NestJS provider tokens can be strings, classes, or symbols (e.g. `{ provide: Symbol('X'), ... }`).
+   * Template-literal interpolation throws on a raw symbol, so this converts explicitly.
+   */
+  private safeTokenName(token: unknown): string | undefined {
+    if (token === null || token === undefined) {
+      return undefined;
+    }
+    if (typeof token === 'symbol') {
+      return token.toString();
+    }
+    if (typeof token === 'function') {
+      return token.name || undefined;
+    }
+    return String(token);
+  }
+
   private getName(item: any): string {
     if (typeof item === 'function') {
       return item.name || 'Anonymous';
@@ -352,7 +369,7 @@ export class SnapshotCollector {
     }
 
     const isController = wrapper.metatype.toString().includes('Controller');
-    const name = wrapper.name || wrapper.metatype.name || 'Unknown';
+    const name = this.safeTokenName(wrapper.name) || wrapper.metatype.name || 'Unknown';
     const fromId = isController
       ? `controller:${moduleName}:${name}`
       : `provider:${moduleName}:${name}`;
