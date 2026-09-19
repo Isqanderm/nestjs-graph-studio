@@ -7,6 +7,7 @@ import { GraphStudioModule } from '../module';
 import { GRAPH_STUDIO_OPTIONS } from '../constants';
 import { SnapshotCollector } from '../snapshot/collector';
 import { GraphStudioController } from '../http/controller';
+import { GraphAnalyzer } from '../analysis/analyzer';
 
 // Mock dependencies using vi.hoisted
 
@@ -58,6 +59,9 @@ describe('GraphStudioModule', () => {
 
       // Check for SnapshotCollector
       expect(providers).toContain(SnapshotCollector);
+
+      // Check for GraphAnalyzer
+      expect(providers).toContain(GraphAnalyzer);
     });
   });
 
@@ -161,6 +165,9 @@ describe('GraphStudioModule', () => {
 
       // Check for SnapshotCollector
       expect(providers).toContain(SnapshotCollector);
+
+      // Check for GraphAnalyzer
+      expect(providers).toContain(GraphAnalyzer);
     });
   });
 

@@ -14,6 +14,7 @@ import { GraphStudioOptions, GraphStudioAsyncOptions, mergeOptions } from './opt
 import { GRAPH_STUDIO_OPTIONS } from './constants';
 import { SnapshotCollector } from './snapshot/collector';
 import { GraphStudioController } from './http/controller';
+import { GraphAnalyzer } from './analysis/analyzer';
 
 @Module({})
 export class GraphStudioModule implements NestModule {
@@ -35,6 +36,7 @@ export class GraphStudioModule implements NestModule {
       },
       Reflector,
       SnapshotCollector,
+      GraphAnalyzer,
     ];
 
     return {
@@ -58,6 +60,7 @@ export class GraphStudioModule implements NestModule {
       },
       Reflector,
       SnapshotCollector,
+      GraphAnalyzer,
     ];
 
     return {
