@@ -200,7 +200,10 @@ export class SnapshotCollector {
     const controllerPath = this.reflector.get<string>(PATH_METADATA, wrapper.metatype) || '';
 
     // Skip GraphStudioController to avoid showing internal routes in the UI
-    const isGraphStudioController = controllerName === 'GraphStudioController' || (typeof controllerPath === 'string' && controllerPath.startsWith('graph-studio'));
+    const isGraphStudioController =
+      controllerName === 'GraphStudioController' ||
+      (typeof controllerPath === 'string' &&
+        (controllerPath === 'graph-studio' || controllerPath.startsWith('graph-studio/')));
 
     // Add controller node only if it doesn't already exist
     const controllerExists = nodes.some(node => node.id === controllerId);
