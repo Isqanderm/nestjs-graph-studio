@@ -206,6 +206,39 @@ describe('GraphStudioModule Integration Tests', () => {
     });
   });
 
+  describe('GET /graph-studio/issues', () => {
+    it('should return an issue report with the expected shape', async () => {
+      const response = await request(server)
+        .get('/graph-studio/issues')
+        .expect(200)
+        .expect('Content-Type', /json/);
+
+      expect(response.body).toHaveProperty('createdAt');
+      expect(response.body).toHaveProperty('issues');
+      expect(response.body).toHaveProperty('summary');
+      expect(Array.isArray(response.body.issues)).toBe(true);
+      expect(response.body.summary).toHaveProperty('error');
+      expect(response.body.summary).toHaveProperty('warning');
+      expect(response.body.summary).toHaveProperty('info');
+    });
+
+    it('should return issues with the expected fields when present', async () => {
+      const response = await request(server)
+        .get('/graph-studio/issues')
+        .expect(200);
+
+      for (const issue of response.body.issues) {
+        expect(issue).toHaveProperty('id');
+        expect(issue).toHaveProperty('category');
+        expect(issue).toHaveProperty('severity');
+        expect(issue).toHaveProperty('title');
+        expect(issue).toHaveProperty('description');
+        expect(issue).toHaveProperty('nodeIds');
+        expect(Array.isArray(issue.nodeIds)).toBe(true);
+      }
+    });
+  });
+
   describe('GET /graph-studio/health', () => {
     it('should return health status', async () => {
       const response = await request(server)
