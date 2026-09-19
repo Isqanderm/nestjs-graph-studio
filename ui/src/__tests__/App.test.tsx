@@ -177,6 +177,7 @@ describe('App', () => {
       await waitFor(() => {
         expect(screen.getByTitle('Graph')).toBeInTheDocument();
         expect(screen.getByTitle('Routes')).toBeInTheDocument();
+        expect(screen.getByTitle('GraphQL')).toBeInTheDocument();
       });
     });
   });

@@ -4,6 +4,7 @@ import { useStore } from './store';
 import { fetchGraph } from './api';
 import GraphView from './graph/GraphView';
 import RoutesView from './routes/RoutesView';
+import GraphQLView from './graphql/GraphQLView';
 
 function App() {
   const { setGraph, setLoading, setError } = useStore();
@@ -122,6 +123,43 @@ function App() {
                   </>
                 )}
               </NavLink>
+              <NavLink
+                to="/graphql"
+                className={({ isActive }) =>
+                  `group relative flex flex-col items-center justify-center gap-2 px-3 py-4 text-xs font-medium rounded-lg transition-all duration-200 ease-in-out ${
+                    isActive
+                      ? 'bg-gradient-to-br from-accent/15 to-accent/5 text-accent shadow-sm'
+                      : 'text-devtools-icon-inactive hover:bg-devtools-hover-bg hover:text-devtools-icon-hover hover:shadow-sm'
+                  }`
+                }
+                title="GraphQL"
+              >
+                {({ isActive }) => (
+                  <>
+                    {isActive && (
+                      <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-accent rounded-r-full" />
+                    )}
+                    <svg
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className={`flex-shrink-0 transition-transform duration-200 ${isActive ? 'scale-110' : 'group-hover:scale-105'}`}
+                    >
+                      <polygon points="12 2 2 7 12 12 22 7 12 2" />
+                      <polyline points="2 17 12 22 22 17" />
+                      <polyline points="2 12 12 17 22 12" />
+                    </svg>
+                    <span className={`text-center leading-tight max-w-full overflow-hidden text-ellipsis whitespace-nowrap transition-all duration-200 ${isActive ? 'font-semibold' : ''}`}>
+                      GraphQL
+                    </span>
+                  </>
+                )}
+              </NavLink>
             </nav>
           </aside>
 
@@ -130,6 +168,7 @@ function App() {
             <Routes>
               <Route path="/" element={<GraphView />} />
               <Route path="/routes" element={<RoutesView />} />
+              <Route path="/graphql" element={<GraphQLView />} />
             </Routes>
           </main>
         </div>
