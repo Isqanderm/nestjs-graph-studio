@@ -749,8 +749,6 @@ function GraphViewInner() {
     );
     if (!shouldApply) return;
 
-    const matchingNodes = nodes.filter((n) => matchingIds.has(n.id));
-
     setNodes((nds) =>
       nds.map((n) => {
         const baseClass = n.className?.replace(/\s*(highlighted|dimmed)/g, '').trim() || '';
@@ -781,12 +779,22 @@ function GraphViewInner() {
     // dimmed classNames were applied correctly, but the viewport stayed at
     // the full-graph fit instead of centering on the focused nodes).
     //
+    // Uses reactFlowInstance.getNodes() rather than the local `nodes`
+    // state: our own node objects (built in layoutUtils.ts) only carry
+    // `position`, never `width`/`height`, since those are measured by
+    // React Flow itself after render. Passing dimension-less objects to
+    // fitView({ nodes }) produced a degenerate bounding box that silently
+    // failed to move the viewport (confirmed via manual verification —
+    // the call ran without throwing, but never changed the transform).
+    // getNodes() returns React Flow's own internally-measured nodes.
+    //
     // Deliberately no cleanup function here: setFocusNodeIds(null) below
     // re-triggers this effect (with shouldApply now false), and if a
     // cleanup cleared these timers on every re-run, that would cancel
     // them immediately after scheduling — before either had a chance to
     // fire — since clearing focusNodeIds happens on the very next tick.
     setTimeout(() => {
+      const matchingNodes = reactFlowInstance.getNodes().filter((n) => matchingIds.has(n.id));
       reactFlowInstance.fitView({ nodes: matchingNodes, padding: 0.3 });
     }, 0);
 
