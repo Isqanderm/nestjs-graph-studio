@@ -80,6 +80,11 @@ export class GraphQLOperationCollector {
     const parentTypeName = Reflect.getMetadata(GQL_RESOLVER_NAME_METADATA, metatype) || resolverClass;
     const prototype = (metatype as any).prototype;
 
+    // Known limitation: only the resolver's own prototype is scanned, so a
+    // @Query()/@Mutation()/@ResolveField() declared on a base class (e.g. an
+    // abstract/generic resolver factory extended by this class) is not picked
+    // up here. This mirrors the identical limitation in the REST collector
+    // (collector.ts) for @Controller() inheritance.
     const methodNames = Object.getOwnPropertyNames(prototype).filter(
       (name) => name !== 'constructor' && typeof prototype[name] === 'function',
     );

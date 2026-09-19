@@ -2,7 +2,12 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import 'reflect-metadata';
 import { GraphQLOperationCollector } from '../graphql-collector';
 import { ModulesContainer, Reflector } from '@nestjs/core';
-import { GUARDS_METADATA } from '@nestjs/common/constants';
+import {
+  GUARDS_METADATA,
+  PIPES_METADATA,
+  INTERCEPTORS_METADATA,
+  EXCEPTION_FILTERS_METADATA,
+} from '@nestjs/common/constants';
 
 // Copied from @nestjs/graphql/dist/graphql.constants.js — see graphql-collector.ts for details.
 const GQL_RESOLVER_TYPE_METADATA = 'graphql:resolver_type';
@@ -28,6 +33,14 @@ function FakeQuery(name?: string) {
 function FakeMutation(name?: string) {
   return (_target: any, _key: string, descriptor: PropertyDescriptor) => {
     Reflect.defineMetadata(GQL_RESOLVER_TYPE_METADATA, 'Mutation', descriptor.value);
+    Reflect.defineMetadata(GQL_RESOLVER_NAME_METADATA, name, descriptor.value);
+    return descriptor;
+  };
+}
+
+function FakeSubscription(name?: string) {
+  return (_target: any, _key: string, descriptor: PropertyDescriptor) => {
+    Reflect.defineMetadata(GQL_RESOLVER_TYPE_METADATA, 'Subscription', descriptor.value);
     Reflect.defineMetadata(GQL_RESOLVER_NAME_METADATA, name, descriptor.value);
     return descriptor;
   };
@@ -214,5 +227,60 @@ describe('GraphQLOperationCollector', () => {
     const snapshot = collector.collect();
 
     expect(snapshot.operations[0].chain.guards).toEqual(['AuthGuard']);
+  });
+
+  it('collects a @Subscription() method as a SUBSCRIPTION operation', () => {
+    @FakeResolver()
+    class NotificationResolver {
+      notificationAdded() {}
+    }
+    FakeSubscription('notificationAdded')(
+      NotificationResolver.prototype,
+      'notificationAdded',
+      Object.getOwnPropertyDescriptor(NotificationResolver.prototype, 'notificationAdded')!,
+    );
+
+    const collector = new GraphQLOperationCollector(makeModulesContainer([NotificationResolver]), reflector);
+    const snapshot = collector.collect();
+
+    expect(snapshot.operations).toHaveLength(1);
+    expect(snapshot.operations[0]).toMatchObject({
+      kind: 'SUBSCRIPTION',
+      typeName: 'Subscription',
+      fieldName: 'notificationAdded',
+      resolverClass: 'NotificationResolver',
+    });
+    expect(snapshot.stats.subscriptions).toBe(1);
+  });
+
+  it('collects guards/pipes/interceptors/filters declared at the class level (applying to every resolver method)', () => {
+    class AuthGuard {}
+    class ValidationPipe {}
+    class LoggingInterceptor {}
+    class HttpExceptionFilter {}
+
+    @FakeResolver()
+    class SecuredResolver {
+      secretData() {}
+    }
+    Reflect.defineMetadata(GUARDS_METADATA, [AuthGuard], SecuredResolver);
+    Reflect.defineMetadata(PIPES_METADATA, [ValidationPipe], SecuredResolver);
+    Reflect.defineMetadata(INTERCEPTORS_METADATA, [LoggingInterceptor], SecuredResolver);
+    Reflect.defineMetadata(EXCEPTION_FILTERS_METADATA, [HttpExceptionFilter], SecuredResolver);
+    FakeQuery('secretData')(
+      SecuredResolver.prototype,
+      'secretData',
+      Object.getOwnPropertyDescriptor(SecuredResolver.prototype, 'secretData')!,
+    );
+
+    const collector = new GraphQLOperationCollector(makeModulesContainer([SecuredResolver]), reflector);
+    const snapshot = collector.collect();
+
+    expect(snapshot.operations[0].chain).toEqual({
+      guards: ['AuthGuard'],
+      pipes: ['ValidationPipe'],
+      interceptors: ['LoggingInterceptor'],
+      filters: ['HttpExceptionFilter'],
+    });
   });
 });
