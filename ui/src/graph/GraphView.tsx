@@ -780,12 +780,17 @@ function GraphViewInner() {
     // undoes this zoom (confirmed via manual verification: the highlighted/
     // dimmed classNames were applied correctly, but the viewport stayed at
     // the full-graph fit instead of centering on the focused nodes).
-    const fitViewTimer = setTimeout(() => {
+    //
+    // Deliberately no cleanup function here: setFocusNodeIds(null) below
+    // re-triggers this effect (with shouldApply now false), and if a
+    // cleanup cleared these timers on every re-run, that would cancel
+    // them immediately after scheduling — before either had a chance to
+    // fire — since clearing focusNodeIds happens on the very next tick.
+    setTimeout(() => {
       reactFlowInstance.fitView({ nodes: matchingNodes, padding: 0.3 });
     }, 0);
-    setFocusNodeIds(null);
 
-    const clearHighlightTimer = setTimeout(() => {
+    setTimeout(() => {
       setNodes((nds) =>
         nds.map((n) => ({
           ...n,
@@ -800,10 +805,7 @@ function GraphViewInner() {
       );
     }, 4000);
 
-    return () => {
-      clearTimeout(fitViewTimer);
-      clearTimeout(clearHighlightTimer);
-    };
+    setFocusNodeIds(null);
   }, [focusNodeIds, nodes, reactFlowInstance, setNodes, setEdges, setFocusNodeIds]);
 
   const handleSearch = () => {
