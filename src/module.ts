@@ -13,7 +13,9 @@ import { DiscoveryModule, Reflector } from '@nestjs/core';
 import { GraphStudioOptions, GraphStudioAsyncOptions, mergeOptions } from './options';
 import { GRAPH_STUDIO_OPTIONS } from './constants';
 import { SnapshotCollector } from './snapshot/collector';
+import { GraphQLOperationCollector } from './snapshot/graphql-collector';
 import { GraphStudioController } from './http/controller';
+import { GraphQlStudioController } from './http/graphql-controller';
 
 @Module({})
 export class GraphStudioModule implements NestModule {
@@ -35,14 +37,15 @@ export class GraphStudioModule implements NestModule {
       },
       Reflector,
       SnapshotCollector,
+      GraphQLOperationCollector,
     ];
 
     return {
       module: GraphStudioModule,
       imports: [DiscoveryModule],
       providers,
-      controllers: [GraphStudioController],
-      exports: [GRAPH_STUDIO_OPTIONS, SnapshotCollector],
+      controllers: [GraphQlStudioController, GraphStudioController],
+      exports: [GRAPH_STUDIO_OPTIONS, SnapshotCollector, GraphQLOperationCollector],
     };
   }
 
@@ -58,13 +61,14 @@ export class GraphStudioModule implements NestModule {
       },
       Reflector,
       SnapshotCollector,
+      GraphQLOperationCollector,
     ];
 
     return {
       module: GraphStudioModule,
       imports: [DiscoveryModule],
       providers,
-      controllers: [GraphStudioController],
+      controllers: [GraphQlStudioController, GraphStudioController],
       exports: [GRAPH_STUDIO_OPTIONS],
     };
   }

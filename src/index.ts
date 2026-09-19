@@ -17,4 +17,10 @@ export {
   NodeType,
   Stage,
 } from './snapshot/models';
+export {
+  GraphQLOperationMeta,
+  GraphQLOperationKind,
+  GraphQLStats,
+  GraphQLSnapshot,
+} from './snapshot/graphql-models';
 
