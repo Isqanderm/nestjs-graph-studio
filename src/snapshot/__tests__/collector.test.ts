@@ -5,8 +5,9 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { SnapshotCollector } from '../collector';
 import { ModulesContainer, Reflector } from '@nestjs/core';
-import { PATH_METADATA, METHOD_METADATA } from '@nestjs/common/constants';
+import { PATH_METADATA, METHOD_METADATA, PARAMTYPES_METADATA } from '@nestjs/common/constants';
 import { RequestMethod } from '@nestjs/common';
+import 'reflect-metadata';
 
 
 
@@ -465,6 +466,64 @@ describe('SnapshotCollector', () => {
 
       // Verify nodes exist
       expect(snapshot.nodes.length).toBeGreaterThan(0);
+    });
+
+    it('should resolve a dependency injected by an abstract-class token whose implementation has a different name', () => {
+      // Regression test for a real-world false positive: @nestjs/graphql registers
+      // `{ provide: AbstractGraphQLDriver, useClass: ApolloDriver }`. NestJS keys the
+      // provider by the token (AbstractGraphQLDriver) but `wrapper.name` reflects the
+      // implementation class (ApolloDriver) - matching by name instead of by the actual
+      // token previously caused this to be reported as a missing dependency.
+      abstract class AbstractDriver {}
+      class ConcreteDriver extends AbstractDriver {}
+
+      class ConsumerModule {
+        constructor(_driver: AbstractDriver) {}
+      }
+      // Real constructor-parameter-type metadata, exactly as TypeScript's
+      // emitDecoratorMetadata would emit it - collectProviderDependencies reads
+      // this via the global Reflect.getMetadata, not the injected Reflector.
+      Reflect.defineMetadata(PARAMTYPES_METADATA, [AbstractDriver], ConsumerModule);
+
+      const mockModule = {
+        metatype: { name: 'TestModule' },
+        // The provider map key is the actual token class (AbstractDriver), exactly as
+        // NestJS's own Module#addCustomClass keys it - not a string, unlike the other
+        // mocks in this file.
+        providers: new Map<any, any>([
+          [AbstractDriver, {
+            name: 'ConcreteDriver',
+            metatype: ConcreteDriver,
+            instance: {},
+          }],
+          [ConsumerModule, {
+            name: 'ConsumerModule',
+            metatype: ConsumerModule,
+            instance: {},
+          }],
+        ]),
+        controllers: new Map(),
+        injectables: new Map(),
+        imports: new Set(),
+        exports: new Set(),
+      };
+
+      const testContainer = new Map([[mockModule.metatype, mockModule]]) as unknown as ModulesContainer;
+      const testCollector = new SnapshotCollector(testContainer, reflector);
+
+      const snapshot = testCollector.collect();
+
+      // Must NOT be reported as missing
+      const missingNode = snapshot.nodes.find(n => n.type === 'MISSING');
+      expect(missingNode).toBeUndefined();
+
+      // Must create a real 'injects' edge from the consumer to the actual provider node
+      const injectsEdge = snapshot.edges.find(e => e.kind === 'injects');
+      expect(injectsEdge).toBeDefined();
+
+      const providerNode = snapshot.nodes.find(n => n.id === injectsEdge?.to);
+      expect(providerNode).toBeDefined();
+      expect(providerNode?.name).toBe('ConcreteDriver');
     });
 
     it('should handle provider found in different module after checking first module', () => {
