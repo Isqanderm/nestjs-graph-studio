@@ -16,76 +16,72 @@ function buildAdjacency(
   return adjacency;
 }
 
-function normalizeCycle(cycle: string[]): string {
-  let minIndex = 0;
-  for (let i = 1; i < cycle.length; i++) {
-    if (cycle[i] < cycle[minIndex]) {
-      minIndex = i;
-    }
-  }
-  return [...cycle.slice(minIndex), ...cycle.slice(0, minIndex)].join('->');
-}
-
-function findCycles(adjacency: Map<string, string[]>): string[][] {
-  const visited = new Set<string>();
+function findStronglyConnectedComponents(adjacency: Map<string, string[]>): string[][] {
+  const indices = new Map<string, number>();
+  const lowlink = new Map<string, number>();
   const onStack = new Set<string>();
   const stack: string[] = [];
-  const cycles: string[][] = [];
-  const seenSignatures = new Set<string>();
+  let index = 0;
+  const components: string[][] = [];
 
-  function visit(nodeId: string): void {
-    visited.add(nodeId);
-    onStack.add(nodeId);
-    stack.push(nodeId);
+  function strongconnect(v: string): void {
+    indices.set(v, index);
+    lowlink.set(v, index);
+    index++;
+    stack.push(v);
+    onStack.add(v);
 
-    for (const next of adjacency.get(nodeId) || []) {
-      if (!visited.has(next)) {
-        visit(next);
-      } else if (onStack.has(next)) {
-        const cycleStart = stack.indexOf(next);
-        const cycle = stack.slice(cycleStart);
-        const signature = normalizeCycle(cycle);
-        if (!seenSignatures.has(signature)) {
-          seenSignatures.add(signature);
-          cycles.push(cycle);
-        }
+    for (const w of adjacency.get(v) || []) {
+      if (!indices.has(w)) {
+        strongconnect(w);
+        lowlink.set(v, Math.min(lowlink.get(v)!, lowlink.get(w)!));
+      } else if (onStack.has(w)) {
+        lowlink.set(v, Math.min(lowlink.get(v)!, indices.get(w)!));
       }
     }
 
-    stack.pop();
-    onStack.delete(nodeId);
-  }
-
-  for (const nodeId of adjacency.keys()) {
-    if (!visited.has(nodeId)) {
-      visit(nodeId);
+    if (lowlink.get(v) === indices.get(v)) {
+      const component: string[] = [];
+      let w: string;
+      do {
+        w = stack.pop()!;
+        onStack.delete(w);
+        component.push(w);
+      } while (w !== v);
+      components.push(component);
     }
   }
 
-  return cycles;
+  for (const v of adjacency.keys()) {
+    if (!indices.has(v)) {
+      strongconnect(v);
+    }
+  }
+
+  return components.filter((component) => component.length > 1);
 }
 
 function cycleToIssue(
   nodeNameById: Map<string, string>,
-  cycle: string[],
+  component: string[],
   scope: 'module' | 'provider',
 ): Issue {
-  const names = cycle.map((id) => nodeNameById.get(id) || id);
-  const pathDescription = [...names, names[0]].join(' -> ');
+  const names = component.map((id) => nodeNameById.get(id) || id).sort();
+  const primaryName = names[0];
 
   return {
-    id: `circular-dependency:${scope}:${[...cycle].sort().join(',')}`,
+    id: `circular-dependency:${scope}:${[...component].sort().join(',')}`,
     category: 'circular-dependency',
     severity: 'warning',
     title:
       scope === 'module'
-        ? `Circular module import: ${names[0]}`
-        : `Circular dependency injection: ${names[0]}`,
+        ? `Circular module import: ${primaryName}`
+        : `Circular dependency injection: ${primaryName}`,
     description:
       scope === 'module'
-        ? `These modules import each other in a cycle: ${pathDescription}. This only works because forwardRef() is used somewhere in the cycle, which makes module initialization order implicit and harder to reason about.`
-        : `These providers inject each other in a cycle: ${pathDescription}. This only works because forwardRef() is used somewhere in the cycle — otherwise Nest could not have resolved these dependencies at bootstrap.`,
-    nodeIds: cycle,
+        ? `These modules form a circular dependency: ${names.join(', ')}. This only works because forwardRef() is used somewhere in the cycle, which makes module initialization order implicit and harder to reason about.`
+        : `These providers form a circular dependency: ${names.join(', ')}. This only works because forwardRef() is used somewhere in the cycle — otherwise Nest could not have resolved these dependencies at bootstrap.`,
+    nodeIds: component,
     suggestedFix:
       scope === 'module'
         ? 'Consider extracting the shared contract into a separate module both sides can import without a cycle.'
@@ -96,11 +92,11 @@ function cycleToIssue(
 export function findCircularDependencies(snapshot: GraphSnapshot): Issue[] {
   const nodeNameById = new Map(snapshot.nodes.map((node) => [node.id, node.name]));
 
-  const moduleCycles = findCycles(buildAdjacency(snapshot, 'import'));
-  const providerCycles = findCycles(buildAdjacency(snapshot, 'injects'));
+  const moduleComponents = findStronglyConnectedComponents(buildAdjacency(snapshot, 'import'));
+  const providerComponents = findStronglyConnectedComponents(buildAdjacency(snapshot, 'injects'));
 
   return [
-    ...moduleCycles.map((cycle) => cycleToIssue(nodeNameById, cycle, 'module')),
-    ...providerCycles.map((cycle) => cycleToIssue(nodeNameById, cycle, 'provider')),
+    ...moduleComponents.map((component) => cycleToIssue(nodeNameById, component, 'module')),
+    ...providerComponents.map((component) => cycleToIssue(nodeNameById, component, 'provider')),
   ];
 }

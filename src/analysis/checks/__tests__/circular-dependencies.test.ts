@@ -84,4 +84,27 @@ describe('findCircularDependencies', () => {
 
     expect(findCircularDependencies(snapshot)).toEqual([]);
   });
+
+  it('detects all modules in a "diamond" cycle, including ones reached via a second path', () => {
+    const snapshot = buildSnapshot(
+      [moduleNode('ModuleA'), moduleNode('ModuleB'), moduleNode('ModuleC'), moduleNode('ModuleD')],
+      [
+        edge('module:ModuleA', 'module:ModuleB', 'import'),
+        edge('module:ModuleA', 'module:ModuleC', 'import'),
+        edge('module:ModuleB', 'module:ModuleD', 'import'),
+        edge('module:ModuleC', 'module:ModuleD', 'import'),
+        edge('module:ModuleD', 'module:ModuleA', 'import'),
+      ],
+    );
+
+    const issues = findCircularDependencies(snapshot);
+
+    expect(issues).toHaveLength(1);
+    expect(issues[0].nodeIds.sort()).toEqual([
+      'module:ModuleA',
+      'module:ModuleB',
+      'module:ModuleC',
+      'module:ModuleD',
+    ]);
+  });
 });
