@@ -5,6 +5,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { GraphStudioController } from '../controller';
 import { SnapshotCollector } from '../../snapshot/collector';
+import { GraphAnalyzer } from '../../analysis/analyzer';
 
 // Mock dependencies using vi.hoisted
 const {
@@ -68,6 +69,7 @@ vi.mock('../../adapters/fastify', () => ({
 describe('GraphStudioController', () => {
   let controller: GraphStudioController;
   let mockCollector: SnapshotCollector;
+  let mockAnalyzer: GraphAnalyzer;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -93,7 +95,15 @@ describe('GraphStudioController', () => {
       })),
     } as any;
 
-    controller = new GraphStudioController(mockCollector);
+    mockAnalyzer = {
+      analyze: vi.fn(() => ({
+        createdAt: '2024-01-01T00:00:00.000Z',
+        issues: [],
+        summary: { error: 0, warning: 0, info: 0 },
+      })),
+    } as any;
+
+    controller = new GraphStudioController(mockCollector, mockAnalyzer);
   });
 
   describe('getGraph', () => {
@@ -154,6 +164,22 @@ describe('GraphStudioController', () => {
         method: 'GET',
         controller: 'TestController',
         handler: 'getTest',
+      });
+    });
+  });
+
+  describe('getIssues', () => {
+    it('should return an issue report analyzed from the current snapshot', () => {
+      const result = controller.getIssues();
+
+      expect(mockCollector.collect).toHaveBeenCalled();
+      expect(mockAnalyzer.analyze).toHaveBeenCalledWith(
+        (mockCollector.collect as any).mock.results[0].value,
+      );
+      expect(result).toEqual({
+        createdAt: '2024-01-01T00:00:00.000Z',
+        issues: [],
+        summary: { error: 0, warning: 0, info: 0 },
       });
     });
   });

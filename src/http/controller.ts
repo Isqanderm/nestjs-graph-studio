@@ -6,12 +6,14 @@
 
 import { Controller, Get, Req, Res, Inject, All } from '@nestjs/common';
 import { SnapshotCollector } from '../snapshot/collector';
+import { GraphAnalyzer } from '../analysis/analyzer';
 import { serveStatic } from './static';
 
 @Controller('graph-studio')
 export class GraphStudioController {
   constructor(
     @Inject(SnapshotCollector) private readonly collector: SnapshotCollector,
+    @Inject(GraphAnalyzer) private readonly analyzer: GraphAnalyzer,
   ) {}
 
   @Get('graph')
@@ -26,6 +28,12 @@ export class GraphStudioController {
       routes: snapshot.routes,
       stats: snapshot.stats,
     };
+  }
+
+  @Get('issues')
+  getIssues() {
+    const snapshot = this.collector.collect();
+    return this.analyzer.analyze(snapshot);
   }
 
   @Get('health')
