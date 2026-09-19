@@ -62,6 +62,11 @@ Unlike cloud-based monitoring solutions, Graph Studio runs **entirely on your lo
     - Exception filters (error handling)
   - Filter and search routes by method, path, or controller
 
+- **🔮 GraphQL Resolver Explorer**
+  - Detects `@Query()`, `@Mutation()`, `@Subscription()`, and `@ResolveField()` resolvers via reflect-metadata — no `@nestjs/graphql` dependency required
+  - View complete execution chains for each operation (guards, pipes, interceptors, filters)
+  - Shown in its own dedicated "GraphQL" tab, kept separate from the REST routes view
+
 - **📦 Privacy & Security**
   - Runs 100% locally on your development machine
   - No external API calls or cloud services
@@ -137,9 +142,10 @@ Open your browser and navigate to:
 http://localhost:3000/graph-studio
 ```
 
-You'll see two main views:
+You'll see three main views:
 - **📊 Graph View** - Interactive visualization of your DI graph with pan/zoom controls
 - **🛣️ Routes View** - Complete list of all registered routes with execution chains
+- **🔮 GraphQL View** - All registered queries, mutations, subscriptions and field resolvers with execution chains
 
 That's it! You're ready to explore your NestJS application architecture.
 
@@ -241,6 +247,7 @@ When Graph Studio is enabled, the following endpoints are automatically register
 | `/graph-studio` | GET | Graph Studio web UI |
 | `/graph-studio/graph` | GET | DI graph snapshot (JSON) |
 | `/graph-studio/routes` | GET | Routes metadata (JSON) |
+| `/graph-studio/graphql` | GET | GraphQL resolver operations metadata (JSON) |
 | `/graph-studio/health` | GET | Health check endpoint |
 
 ### Example API Responses
@@ -293,6 +300,12 @@ import {
   RouteMeta,
   RouteChain,
   GraphStats,
+
+  // GraphQL Data Models
+  GraphQLSnapshot,
+  GraphQLOperationMeta,
+  GraphQLOperationKind,
+  GraphQLStats,
 
   // Enums
   Scope,
@@ -351,6 +364,32 @@ interface RouteChain {
   pipes: string[];
   interceptors: string[];
   filters: string[];
+}
+
+// GraphQL Data Models
+type GraphQLOperationKind = 'QUERY' | 'MUTATION' | 'SUBSCRIPTION' | 'FIELD';
+
+interface GraphQLOperationMeta {
+  kind: GraphQLOperationKind;
+  typeName: string; // 'Query' | 'Mutation' | 'Subscription' for operations, or the parent object type name for FIELD
+  fieldName: string; // GraphQL schema field name
+  resolverClass: string; // Name of the @Resolver() class
+  methodName: string; // Method name on the resolver class
+  chain: RouteChain;
+}
+
+interface GraphQLStats {
+  resolverClasses: number;
+  queries: number;
+  mutations: number;
+  subscriptions: number;
+  fields: number;
+}
+
+interface GraphQLSnapshot {
+  createdAt: string;
+  stats: GraphQLStats;
+  operations: GraphQLOperationMeta[];
 }
 
 interface GraphStats {
