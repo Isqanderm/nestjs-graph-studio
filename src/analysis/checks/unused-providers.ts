@@ -1,12 +1,6 @@
 import { GraphSnapshot } from '../../snapshot/models';
 import { Issue } from '../models';
-
-const NEST_INTEGRATION_TOKENS = new Set([
-  'APP_GUARD',
-  'APP_INTERCEPTOR',
-  'APP_FILTER',
-  'APP_PIPE',
-]);
+import { isNestInternalToken } from '../nest-internal-tokens';
 
 export function findUnusedProviders(snapshot: GraphSnapshot): Issue[] {
   const injectedIds = new Set(
@@ -16,7 +10,8 @@ export function findUnusedProviders(snapshot: GraphSnapshot): Issue[] {
   return snapshot.nodes
     .filter((node) => node.type === 'PROVIDER')
     .filter((node) => !injectedIds.has(node.id))
-    .filter((node) => !NEST_INTEGRATION_TOKENS.has(node.name))
+    .filter((node) => !node.isEntryPoint)
+    .filter((node) => !isNestInternalToken(node.name))
     .map((node) => ({
       id: `unused-provider:${node.id}`,
       category: 'unused-provider' as const,

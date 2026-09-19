@@ -25,6 +25,7 @@ import {
   SELF_DECLARED_DEPS_METADATA,
   PARAMTYPES_METADATA,
 } from '@nestjs/common/constants';
+import { GQL_RESOLVER_NAME_METADATA } from './graphql-collector';
 
 // Map RequestMethod enum to string
 const METHOD_MAP: Record<number, string> = {
@@ -137,7 +138,7 @@ export class SnapshotCollector {
 
     // Collect providers
     for (const [, wrapper] of moduleRef.providers) {
-      this.collectProvider(wrapper, moduleId, moduleName, nodes, edges, stats);
+      this.collectProvider(wrapper, moduleId, moduleName, moduleRef.metatype, nodes, edges, stats);
     }
 
     // Collect controllers
@@ -150,6 +151,7 @@ export class SnapshotCollector {
     wrapper: InstanceWrapper,
     moduleId: string,
     moduleName: string,
+    moduleMetatype: Function | undefined,
     nodes: GraphNode[],
     edges: GraphEdge[],
     stats: GraphStats,
@@ -164,12 +166,16 @@ export class SnapshotCollector {
     // Add provider node only if it doesn't already exist
     const providerExists = nodes.some(node => node.id === providerId);
     if (!providerExists) {
+      const isGraphQLResolver = Reflect.hasMetadata(GQL_RESOLVER_NAME_METADATA, wrapper.metatype);
+      const isModuleSelfRegistration = wrapper.metatype === moduleMetatype;
+
       nodes.push({
         id: providerId,
         name: providerName,
         type: 'PROVIDER',
         scope: this.getScopeName(wrapper.scope),
         module: moduleName,
+        isEntryPoint: isGraphQLResolver || isModuleSelfRegistration,
       });
       stats.providers++;
 

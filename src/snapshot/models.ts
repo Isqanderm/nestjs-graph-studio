@@ -21,6 +21,14 @@ export interface GraphNode {
     requiredBy: string[]; // IDs of nodes that require this missing dependency
     suggestedFix?: string; // Suggested fix message
   };
+  // True for providers invoked by a framework mechanism rather than by
+  // constructor injection from other providers — a GraphQL resolver class
+  // (invoked by the GraphQL executor) or a module registering itself as
+  // one of its own providers (a common NestJS self-reference pattern).
+  // Analysis checks (e.g. unused-provider, duplicate-token) treat these
+  // as entry points, the same way REST controllers already are, instead
+  // of flagging them as dead/duplicated code.
+  isEntryPoint?: boolean;
 }
 
 export interface GraphEdge {

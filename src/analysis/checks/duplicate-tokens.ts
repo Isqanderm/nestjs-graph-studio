@@ -1,11 +1,20 @@
 import { GraphSnapshot, GraphNode } from '../../snapshot/models';
 import { Issue } from '../models';
+import { isNestInternalToken } from '../nest-internal-tokens';
 
 export function findDuplicateTokens(snapshot: GraphSnapshot): Issue[] {
   const providersByName = new Map<string, GraphNode[]>();
 
   for (const node of snapshot.nodes) {
     if (node.type !== 'PROVIDER') continue;
+    // Entry points (GraphQL resolvers, module self-registration) are
+    // expected to appear once per module by design (e.g. Vendure
+    // registers each resolver separately for its Admin and Shop GraphQL
+    // APIs) — that is not the "two different instances" confusion this
+    // check looks for. Nest-internal tokens are excluded for the same
+    // reason as in findUnusedProviders.
+    if (node.isEntryPoint) continue;
+    if (isNestInternalToken(node.name)) continue;
     if (!providersByName.has(node.name)) {
       providersByName.set(node.name, []);
     }

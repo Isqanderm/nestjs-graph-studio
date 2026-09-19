@@ -23,6 +23,7 @@ export function providerNode(
   name: string,
   moduleName: string,
   scope: GraphNode['scope'] = 'SINGLETON',
+  isEntryPoint = false,
 ): GraphNode {
   return {
     id: `provider:${moduleName}:${name}`,
@@ -30,6 +31,7 @@ export function providerNode(
     type: 'PROVIDER',
     module: moduleName,
     scope,
+    isEntryPoint,
   };
 }
 

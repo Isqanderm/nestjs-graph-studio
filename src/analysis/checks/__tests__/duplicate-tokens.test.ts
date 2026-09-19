@@ -34,4 +34,30 @@ describe('findDuplicateTokens', () => {
 
     expect(findDuplicateTokens(snapshot)).toEqual([]);
   });
+
+  it('does not flag entry-point providers registered once per module by design (e.g. Admin/Shop GraphQL resolver pairs)', () => {
+    const snapshot = buildSnapshot(
+      [
+        providerNode('ProductResolver', 'AdminApiModule', 'SINGLETON', true),
+        providerNode('ProductResolver', 'ShopApiModule', 'SINGLETON', true),
+      ],
+      [],
+    );
+
+    expect(findDuplicateTokens(snapshot)).toEqual([]);
+  });
+
+  it('does not flag wider Nest DI internals (ModuleRef, Reflector) shared across modules', () => {
+    const snapshot = buildSnapshot(
+      [
+        providerNode('ModuleRef', 'ModuleA'),
+        providerNode('ModuleRef', 'ModuleB'),
+        providerNode('Reflector', 'ModuleA'),
+        providerNode('Reflector', 'ModuleB'),
+      ],
+      [],
+    );
+
+    expect(findDuplicateTokens(snapshot)).toEqual([]);
+  });
 });

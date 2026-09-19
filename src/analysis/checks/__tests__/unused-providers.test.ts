@@ -46,4 +46,31 @@ describe('findUnusedProviders', () => {
 
     expect(findUnusedProviders(snapshot)).toEqual([]);
   });
+
+  it('does not flag entry-point providers (GraphQL resolvers, module self-registration)', () => {
+    const snapshot = buildSnapshot(
+      [
+        providerNode('ProductResolver', 'ApiModule', 'SINGLETON', true),
+        providerNode('AppModule', 'AppModule', 'SINGLETON', true),
+      ],
+      [],
+    );
+
+    expect(findUnusedProviders(snapshot)).toEqual([]);
+  });
+
+  it('does not flag wider Nest DI internals (ModuleRef, Reflector, REQUEST, INQUIRER, plugin option symbols)', () => {
+    const snapshot = buildSnapshot(
+      [
+        providerNode('ModuleRef', 'AppModule'),
+        providerNode('Reflector', 'AppModule'),
+        providerNode('REQUEST', 'AppModule'),
+        providerNode('INQUIRER', 'AppModule'),
+        providerNode('Symbol(DEFAULT_SCHEDULER_PLUGIN_OPTIONS)', 'SchedulerPlugin'),
+      ],
+      [],
+    );
+
+    expect(findUnusedProviders(snapshot)).toEqual([]);
+  });
 });

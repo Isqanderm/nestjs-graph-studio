@@ -4,6 +4,7 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { SnapshotCollector } from '../collector';
+import { GQL_RESOLVER_NAME_METADATA } from '../graphql-collector';
 import { ModulesContainer, Reflector } from '@nestjs/core';
 import { PATH_METADATA, METHOD_METADATA, PARAMTYPES_METADATA } from '@nestjs/common/constants';
 import { RequestMethod } from '@nestjs/common';
@@ -589,6 +590,99 @@ describe('SnapshotCollector', () => {
 
       // The edge should exist if the collector properly searches across modules
       expect(snapshot.edges.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('isEntryPoint tagging', () => {
+    it('should mark a provider as an entry point when a module registers itself as a provider', () => {
+      class SelfRegisteringModule {}
+
+      const mockModule = {
+        metatype: SelfRegisteringModule,
+        providers: new Map([
+          [SelfRegisteringModule, {
+            name: undefined,
+            metatype: SelfRegisteringModule,
+            instance: {},
+          }],
+        ]),
+        controllers: new Map(),
+        injectables: new Map(),
+        imports: new Set(),
+        exports: new Set(),
+      };
+
+      const testContainer = new Map([[mockModule.metatype, mockModule]]) as unknown as ModulesContainer;
+      const testCollector = new SnapshotCollector(testContainer, new Reflector());
+
+      const snapshot = testCollector.collect();
+
+      const selfNode = snapshot.nodes.find(
+        (n) => n.type === 'PROVIDER' && n.name === 'SelfRegisteringModule',
+      );
+      expect(selfNode).toBeDefined();
+      expect(selfNode?.isEntryPoint).toBe(true);
+    });
+
+    it('should mark a GraphQL resolver provider as an entry point', () => {
+      class ProductResolver {}
+      Reflect.defineMetadata(GQL_RESOLVER_NAME_METADATA, 'Product', ProductResolver);
+
+      const mockModule = {
+        metatype: class ApiModule {},
+        providers: new Map([
+          ['ProductResolver', {
+            name: undefined,
+            metatype: ProductResolver,
+            instance: {},
+          }],
+        ]),
+        controllers: new Map(),
+        injectables: new Map(),
+        imports: new Set(),
+        exports: new Set(),
+      };
+
+      const testContainer = new Map([[mockModule.metatype, mockModule]]) as unknown as ModulesContainer;
+      const testCollector = new SnapshotCollector(testContainer, new Reflector());
+
+      const snapshot = testCollector.collect();
+
+      const resolverNode = snapshot.nodes.find(
+        (n) => n.type === 'PROVIDER' && n.name === 'ProductResolver',
+      );
+      expect(resolverNode).toBeDefined();
+      expect(resolverNode?.isEntryPoint).toBe(true);
+    });
+
+    it('should not mark an ordinary provider as an entry point', () => {
+      class OrdinaryService {}
+
+      const mockModule = {
+        metatype: class OrdinaryModule {},
+        providers: new Map([
+          ['OrdinaryService', {
+            name: undefined,
+            metatype: OrdinaryService,
+            instance: {},
+          }],
+        ]),
+        controllers: new Map(),
+        injectables: new Map(),
+        imports: new Set(),
+        exports: new Set(),
+      };
+
+      const testContainer = new Map([[mockModule.metatype, mockModule]]) as unknown as ModulesContainer;
+      const testCollector = new SnapshotCollector(testContainer, new Reflector());
+
+      const snapshot = testCollector.collect();
+
+      const serviceNode = snapshot.nodes.find(
+        (n) => n.type === 'PROVIDER' && n.name === 'OrdinaryService',
+      );
+      expect(serviceNode).toBeDefined();
+      expect(serviceNode?.isEntryPoint).toBe(false);
     });
   });
 });

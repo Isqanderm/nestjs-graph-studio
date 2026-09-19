@@ -32,7 +32,11 @@ import {
 } from './graphql-models';
 
 const GQL_RESOLVER_TYPE_METADATA = 'graphql:resolver_type';
-const GQL_RESOLVER_NAME_METADATA = 'graphql:resolver_name';
+// Exported for src/snapshot/collector.ts, which uses the same check to mark
+// resolver providers as entry points (see GraphNode.isEntryPoint) — reuses
+// this literal instead of re-duplicating the "no @nestjs/graphql dependency"
+// rationale a second time.
+export const GQL_RESOLVER_NAME_METADATA = 'graphql:resolver_name';
 const GQL_RESOLVER_PROPERTY_METADATA = 'graphql:resolve_property';
 
 @Injectable()
