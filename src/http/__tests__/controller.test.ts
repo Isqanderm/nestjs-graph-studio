@@ -175,12 +175,37 @@ describe('GraphStudioController', () => {
       expect(mockCollector.collect).toHaveBeenCalled();
       expect(mockAnalyzer.analyze).toHaveBeenCalledWith(
         (mockCollector.collect as any).mock.results[0].value,
+        undefined,
       );
       expect(result).toEqual({
         createdAt: '2024-01-01T00:00:00.000Z',
         issues: [],
         summary: { error: 0, warning: 0, info: 0 },
       });
+    });
+
+    it('should also pass the GraphQL snapshot to the analyzer when a GraphQLOperationCollector is available', () => {
+      const mockGraphqlCollector = {
+        collect: vi.fn(() => ({
+          createdAt: '2024-01-01T00:00:00.000Z',
+          stats: { resolverClasses: 0, queries: 0, mutations: 0, subscriptions: 0, fields: 0 },
+          operations: [],
+        })),
+      } as any;
+
+      const controllerWithGraphql = new GraphStudioController(
+        mockCollector,
+        mockAnalyzer,
+        mockGraphqlCollector,
+      );
+
+      controllerWithGraphql.getIssues();
+
+      expect(mockGraphqlCollector.collect).toHaveBeenCalled();
+      expect(mockAnalyzer.analyze).toHaveBeenCalledWith(
+        (mockCollector.collect as any).mock.results[0].value,
+        (mockGraphqlCollector.collect as any).mock.results[0].value,
+      );
     });
   });
 

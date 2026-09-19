@@ -108,4 +108,28 @@ describe('findUnusedProviders', () => {
     expect(issues).toHaveLength(1);
     expect(issues[0].nodeIds).toEqual(['provider:AppModule:OrphanService']);
   });
+
+  it('does not flag a provider referenced only in a GraphQL resolver chain (e.g. @UseGuards on a resolver method)', () => {
+    const snapshot = buildSnapshot(
+      [providerNode('AuthGuard', 'ApiModule')],
+      [],
+      [],
+    );
+    const graphqlSnapshot = {
+      createdAt: new Date().toISOString(),
+      stats: { resolverClasses: 1, queries: 1, mutations: 0, subscriptions: 0, fields: 0 },
+      operations: [
+        {
+          kind: 'QUERY' as const,
+          typeName: 'Query',
+          fieldName: 'products',
+          resolverClass: 'ProductResolver',
+          methodName: 'products',
+          chain: { guards: ['AuthGuard'], pipes: [], interceptors: [], filters: [] },
+        },
+      ],
+    };
+
+    expect(findUnusedProviders(snapshot, graphqlSnapshot)).toEqual([]);
+  });
 });

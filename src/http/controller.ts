@@ -4,8 +4,9 @@
  * All endpoints are served under the /graph-studio base path.
  */
 
-import { Controller, Get, Req, Res, Inject, All } from '@nestjs/common';
+import { Controller, Get, Req, Res, Inject, All, Optional } from '@nestjs/common';
 import { SnapshotCollector } from '../snapshot/collector';
+import { GraphQLOperationCollector } from '../snapshot/graphql-collector';
 import { GraphAnalyzer } from '../analysis/analyzer';
 import { serveStatic } from './static';
 
@@ -14,6 +15,10 @@ export class GraphStudioController {
   constructor(
     @Inject(SnapshotCollector) private readonly collector: SnapshotCollector,
     @Inject(GraphAnalyzer) private readonly analyzer: GraphAnalyzer,
+    // Optional: GraphStudioModule always registers this provider today, but
+    // treating it as optional keeps getIssues() from hard-failing DI if that
+    // ever changes, degrading gracefully to REST-only analysis instead.
+    @Optional() @Inject(GraphQLOperationCollector) private readonly graphqlCollector?: GraphQLOperationCollector,
   ) {}
 
   @Get('graph')
@@ -33,7 +38,8 @@ export class GraphStudioController {
   @Get('issues')
   getIssues() {
     const snapshot = this.collector.collect();
-    return this.analyzer.analyze(snapshot);
+    const graphqlSnapshot = this.graphqlCollector?.collect();
+    return this.analyzer.analyze(snapshot, graphqlSnapshot);
   }
 
   @Get('health')
