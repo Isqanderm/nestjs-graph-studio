@@ -178,6 +178,7 @@ describe('App', () => {
         expect(screen.getByTitle('Graph')).toBeInTheDocument();
         expect(screen.getByTitle('Routes')).toBeInTheDocument();
         expect(screen.getByTitle('Issues')).toBeInTheDocument();
+        expect(screen.getByTitle('GraphQL')).toBeInTheDocument();
       });
     });
   });

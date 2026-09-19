@@ -23,4 +23,10 @@ export {
   IssueSeverity,
   IssueCategory,
 } from './analysis/models';
+export {
+  GraphQLOperationMeta,
+  GraphQLOperationKind,
+  GraphQLStats,
+  GraphQLSnapshot,
+} from './snapshot/graphql-models';
 

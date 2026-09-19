@@ -173,11 +173,35 @@ describe('GraphStudioModule Integration Tests', () => {
 
       expect(graphRoute).toBeUndefined();
 
+      // GraphQlStudioController (mounted at graph-studio/graphql) is also an internal
+      // controller and must not leak into the public routes list either.
+      const graphQlRoute = response.body.routes.find(
+        (route: any) => route.controller === 'GraphQlStudioController',
+      );
+
+      expect(graphQlRoute).toBeUndefined();
+
       // But test routes should be included
       const testRoute = response.body.routes.find(
         (route: any) => route.controller === 'TestController',
       );
       expect(testRoute).toBeDefined();
+
+      // Same exclusion must hold for the graph snapshot endpoint's routes list
+      // (this is what previously leaked and inflated stats.routes by one)
+      const graphResponse = await request(server)
+        .get('/graph-studio/graph')
+        .expect(200);
+
+      const graphQlRouteInGraph = graphResponse.body.routes.find(
+        (route: any) => route.controller === 'GraphQlStudioController',
+      );
+      expect(graphQlRouteInGraph).toBeUndefined();
+
+      const graphQlRouteNodeInGraph = graphResponse.body.nodes.find(
+        (node: any) => node.type === 'ROUTE' && node.name?.includes('/graph-studio/graphql'),
+      );
+      expect(graphQlRouteNodeInGraph).toBeUndefined();
     });
 
     it('should include route metadata (guards, pipes, interceptors)', async () => {

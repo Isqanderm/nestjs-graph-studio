@@ -7,8 +7,8 @@ import { existsSync, readFileSync } from 'fs';
 
 // Try to find UI directory - check both built and source locations
 function findUiDir(): string {
-  // When running from built package (dist/)
-  const builtUiDir = join(__dirname, '..', 'ui');
+  // When running from built package (dist/index.js next to dist/ui/)
+  const builtUiDir = join(__dirname, 'ui');
   if (existsSync(join(builtUiDir, 'index.html'))) {
     return builtUiDir;
   }

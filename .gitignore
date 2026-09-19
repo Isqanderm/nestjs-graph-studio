@@ -148,3 +148,7 @@ playwright/.cache/
 
 # Example app package-lock (uses parent package)
 example/package-lock.json
+
+# Superpowers plugin scratch state (plans, SDD workspaces) - not repo content
+.superpowers/
+docs/superpowers/

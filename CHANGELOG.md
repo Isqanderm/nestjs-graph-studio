@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- **GraphQL resolver support** - New `/graph-studio/graphql` endpoint exposing detected GraphQL operations as JSON
+  - Detects `@Query()`, `@Mutation()`, `@Subscription()`, and `@ResolveField()` resolvers via reflect-metadata, with no `@nestjs/graphql` dependency required
+  - Adds a new "GraphQL" tab in the UI showing operations with their full execution chains (guards, pipes, interceptors, filters)
+  - Kept deliberately isolated from the existing REST route collection/display pipeline — GraphQL operations never appear in `/graph-studio/routes` or `/graph-studio/graph`
+
 ## [0.1.2] - 2025-10-31
 
 ### Documentation

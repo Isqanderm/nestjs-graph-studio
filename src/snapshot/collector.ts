@@ -158,7 +158,7 @@ export class SnapshotCollector {
       return;
     }
 
-    const providerName = wrapper.name || wrapper.metatype.name || 'UnknownProvider';
+    const providerName = this.safeTokenName(wrapper.name) || wrapper.metatype.name || 'UnknownProvider';
     const providerId = `provider:${moduleName}:${providerName}`;
 
     // Add provider node only if it doesn't already exist
@@ -200,7 +200,10 @@ export class SnapshotCollector {
     const controllerPath = this.reflector.get<string>(PATH_METADATA, wrapper.metatype) || '';
 
     // Skip GraphStudioController to avoid showing internal routes in the UI
-    const isGraphStudioController = controllerName === 'GraphStudioController';
+    const isGraphStudioController =
+      controllerName === 'GraphStudioController' ||
+      (typeof controllerPath === 'string' &&
+        (controllerPath === 'graph-studio' || controllerPath.startsWith('graph-studio/')));
 
     // Add controller node only if it doesn't already exist
     const controllerExists = nodes.some(node => node.id === controllerId);
@@ -289,6 +292,23 @@ export class SnapshotCollector {
     };
   }
 
+  /**
+   * NestJS provider tokens can be strings, classes, or symbols (e.g. `{ provide: Symbol('X'), ... }`).
+   * Template-literal interpolation throws on a raw symbol, so this converts explicitly.
+   */
+  private safeTokenName(token: unknown): string | undefined {
+    if (token === null || token === undefined) {
+      return undefined;
+    }
+    if (typeof token === 'symbol') {
+      return token.toString();
+    }
+    if (typeof token === 'function') {
+      return token.name || undefined;
+    }
+    return String(token);
+  }
+
   private getName(item: any): string {
     if (typeof item === 'function') {
       return item.name || 'Anonymous';
@@ -352,7 +372,7 @@ export class SnapshotCollector {
     }
 
     const isController = wrapper.metatype.toString().includes('Controller');
-    const name = wrapper.name || wrapper.metatype.name || 'Unknown';
+    const name = this.safeTokenName(wrapper.name) || wrapper.metatype.name || 'Unknown';
     const fromId = isController
       ? `controller:${moduleName}:${name}`
       : `provider:${moduleName}:${name}`;
@@ -397,85 +417,62 @@ export class SnapshotCollector {
         continue;
       }
 
-      // Get dependency name - handle both class constructors and string tokens
-      let dependencyName: string;
-      if (typeof dep === 'string') {
-        // String token (e.g., @Inject('LOGGER_SERVICE'))
-        dependencyName = dep;
-      } else if (typeof dep === 'function' && dep.name) {
-        // Class constructor
-        dependencyName = dep.name;
-      } else {
-        // Unknown dependency type, skip
+      // Only string, symbol, and class tokens are valid NestJS injection tokens.
+      if (typeof dep !== 'string' && typeof dep !== 'symbol' && typeof dep !== 'function') {
+        continue;
+      }
+      if (typeof dep === 'function' && !dep.name) {
+        // Anonymous function token: nothing meaningful to display or match.
         continue;
       }
 
-      // Try to find the dependency in all modules
+      const dependencyName = this.safeTokenName(dep) || 'Unknown';
+
+      // Match by the actual injection token (the provider map's key), not by a
+      // name derived from the resolved implementation class. NestJS providers
+      // registered as `{ provide: AbstractThing, useClass: ConcreteThing }` are
+      // keyed by `AbstractThing` but have `wrapper.name === 'ConcreteThing'` -
+      // comparing names instead of tokens misses these entirely and reports a
+      // false "missing dependency" (this is exactly what happens with
+      // `@nestjs/graphql`'s `AbstractGraphQLDriver`, provided via `useClass`).
       let foundDependency = false;
 
-      // For string tokens, check if they're provided anywhere
-      if (typeof dep === 'string') {
-        // String tokens are typically provided with { provide: 'TOKEN', useClass/useValue/... }
-        // We need to check the provider's token/name
-        for (const [, depModuleRef] of this.modulesContainer.entries()) {
-          const depModuleName = depModuleRef.metatype?.name || 'UnknownModule';
+      for (const [, depModuleRef] of this.modulesContainer.entries()) {
+        const depModuleName = depModuleRef.metatype?.name || 'UnknownModule';
 
-          for (const [providerToken] of depModuleRef.providers) {
-            // Check if the provider token matches the string dependency
-            if (providerToken === dependencyName ||
-                (typeof providerToken === 'string' && providerToken === dependencyName)) {
-              const toId = `provider:${depModuleName}:${dependencyName}`;
-              edges.push({
-                from: fromId,
-                to: toId,
-                kind: 'injects',
-              });
-              foundDependency = true;
-              break;
-            }
+        // Check in providers
+        for (const [providerToken, depWrapper] of depModuleRef.providers) {
+          if (providerToken === dep) {
+            const depName = this.safeTokenName(depWrapper.name) || depWrapper.metatype?.name || dependencyName;
+            const toId = `provider:${depModuleName}:${depName}`;
+            edges.push({
+              from: fromId,
+              to: toId,
+              kind: 'injects',
+            });
+            foundDependency = true;
+            break;
           }
-
-          if (foundDependency) break;
         }
-      } else {
-        // For class constructors, use the existing logic
-        for (const [, depModuleRef] of this.modulesContainer.entries()) {
-          const depModuleName = depModuleRef.metatype?.name || 'UnknownModule';
 
-          // Check in providers
-          for (const [, depWrapper] of depModuleRef.providers) {
-            const depName = depWrapper.name || depWrapper.metatype?.name;
-            if (depName === dependencyName) {
-              const toId = `provider:${depModuleName}:${depName}`;
-              edges.push({
-                from: fromId,
-                to: toId,
-                kind: 'injects',
-              });
-              foundDependency = true;
-              break;
-            }
+        if (foundDependency) break;
+
+        // Check in controllers (in case a controller injects another controller)
+        for (const [controllerToken, depWrapper] of depModuleRef.controllers) {
+          if (controllerToken === dep) {
+            const depName = this.safeTokenName(depWrapper.name) || depWrapper.metatype?.name || dependencyName;
+            const toId = `controller:${depModuleName}:${depName}`;
+            edges.push({
+              from: fromId,
+              to: toId,
+              kind: 'injects',
+            });
+            foundDependency = true;
+            break;
           }
-
-          if (foundDependency) break;
-
-          // Check in controllers (in case a controller injects another controller)
-          for (const [, depWrapper] of depModuleRef.controllers) {
-            const depName = depWrapper.name || depWrapper.metatype?.name;
-            if (depName === dependencyName) {
-              const toId = `controller:${depModuleName}:${depName}`;
-              edges.push({
-                from: fromId,
-                to: toId,
-                kind: 'injects',
-              });
-              foundDependency = true;
-              break;
-            }
-          }
-
-          if (foundDependency) break;
         }
+
+        if (foundDependency) break;
       }
 
       // If dependency was not found, track it as missing
