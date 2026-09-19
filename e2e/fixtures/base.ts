@@ -1,6 +1,7 @@
 import { test as base, expect } from '@playwright/test';
 import { GraphViewPage } from '../pages/GraphViewPage';
 import { RoutesViewPage } from '../pages/RoutesViewPage';
+import { IssuesViewPage } from '../pages/IssuesViewPage';
 
 /**
  * Extended test fixtures with page objects for Graph Studio
@@ -8,6 +9,7 @@ import { RoutesViewPage } from '../pages/RoutesViewPage';
 type GraphStudioFixtures = {
   graphViewPage: GraphViewPage;
   routesViewPage: RoutesViewPage;
+  issuesViewPage: IssuesViewPage;
 };
 
 /**
@@ -22,6 +24,11 @@ export const test = base.extend<GraphStudioFixtures>({
   routesViewPage: async ({ page }, use) => {
     const routesViewPage = new RoutesViewPage(page);
     await use(routesViewPage);
+  },
+
+  issuesViewPage: async ({ page }, use) => {
+    const issuesViewPage = new IssuesViewPage(page);
+    await use(issuesViewPage);
   },
 });
 
