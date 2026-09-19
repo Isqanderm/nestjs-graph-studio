@@ -138,6 +138,8 @@ interface SearchSuggestion {
 
 function GraphViewInner() {
   const graph = useStore((state) => state.graph);
+  const focusNodeIds = useStore((state) => state.focusNodeIds);
+  const setFocusNodeIds = useStore((state) => state.setFocusNodeIds);
   const reactFlowInstance = useReactFlow();
   const searchInputRef = useRef<HTMLInputElement>(null);
   const searchDropdownRef = useRef<HTMLDivElement>(null);
@@ -727,6 +729,59 @@ function GraphViewInner() {
       })
     );
   }, [filteredData, setNodes]);
+
+  // Highlight and center on nodes requested via the Issues view ("Show in graph")
+  useEffect(() => {
+    if (!focusNodeIds || focusNodeIds.length === 0) return;
+
+    const matchingNodes = nodes.filter((node) => focusNodeIds.includes(node.id));
+    if (matchingNodes.length === 0) return;
+
+    const matchingIds = new Set(matchingNodes.map((n) => n.id));
+
+    setNodes((nds) =>
+      nds.map((n) => {
+        const baseClass = n.className?.replace(/\s*(highlighted|dimmed)/g, '').trim() || '';
+        const isMatch = matchingIds.has(n.id);
+        return {
+          ...n,
+          selected: isMatch,
+          className: `${baseClass} ${isMatch ? 'highlighted' : 'dimmed'}`.trim(),
+        };
+      })
+    );
+
+    setEdges((eds) =>
+      eds.map((edge) => {
+        const baseClass = edge.className?.replace(/\s*(highlighted|dimmed)/g, '').trim() || '';
+        const isConnected = matchingIds.has(edge.source) || matchingIds.has(edge.target);
+        return {
+          ...edge,
+          className: `${baseClass} ${isConnected ? 'highlighted' : 'dimmed'}`.trim(),
+        };
+      })
+    );
+
+    reactFlowInstance.fitView({ nodes: matchingNodes, padding: 0.3 });
+    setFocusNodeIds(null);
+
+    const timer = setTimeout(() => {
+      setNodes((nds) =>
+        nds.map((n) => ({
+          ...n,
+          className: n.className?.replace(/\s*(highlighted|dimmed)/g, '').trim() || '',
+        }))
+      );
+      setEdges((eds) =>
+        eds.map((edge) => ({
+          ...edge,
+          className: edge.className?.replace(/\s*(highlighted|dimmed)/g, '').trim() || '',
+        }))
+      );
+    }, 4000);
+
+    return () => clearTimeout(timer);
+  }, [focusNodeIds, nodes, reactFlowInstance, setNodes, setEdges, setFocusNodeIds]);
 
   const handleSearch = () => {
     if (!searchTerm) return;

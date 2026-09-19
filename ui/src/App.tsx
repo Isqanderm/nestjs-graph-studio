@@ -4,6 +4,7 @@ import { useStore } from './store';
 import { fetchGraph } from './api';
 import GraphView from './graph/GraphView';
 import RoutesView from './routes/RoutesView';
+import IssuesView from './issues/IssuesView';
 
 function App() {
   const { setGraph, setLoading, setError } = useStore();
@@ -122,6 +123,43 @@ function App() {
                   </>
                 )}
               </NavLink>
+              <NavLink
+                to="/issues"
+                className={({ isActive }) =>
+                  `group relative flex flex-col items-center justify-center gap-2 px-3 py-4 text-xs font-medium rounded-lg transition-all duration-200 ease-in-out ${
+                    isActive
+                      ? 'bg-gradient-to-br from-accent/15 to-accent/5 text-accent shadow-sm'
+                      : 'text-devtools-icon-inactive hover:bg-devtools-hover-bg hover:text-devtools-icon-hover hover:shadow-sm'
+                  }`
+                }
+                title="Issues"
+              >
+                {({ isActive }) => (
+                  <>
+                    {isActive && (
+                      <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-accent rounded-r-full" />
+                    )}
+                    <svg
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className={`flex-shrink-0 transition-transform duration-200 ${isActive ? 'scale-110' : 'group-hover:scale-105'}`}
+                    >
+                      <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                      <line x1="12" y1="9" x2="12" y2="13" />
+                      <line x1="12" y1="17" x2="12.01" y2="17" />
+                    </svg>
+                    <span className={`text-center leading-tight max-w-full overflow-hidden text-ellipsis whitespace-nowrap transition-all duration-200 ${isActive ? 'font-semibold' : ''}`}>
+                      Issues
+                    </span>
+                  </>
+                )}
+              </NavLink>
             </nav>
           </aside>
 
@@ -130,6 +168,7 @@ function App() {
             <Routes>
               <Route path="/" element={<GraphView />} />
               <Route path="/routes" element={<RoutesView />} />
+              <Route path="/issues" element={<IssuesView />} />
             </Routes>
           </main>
         </div>
