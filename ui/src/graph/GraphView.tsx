@@ -136,6 +136,17 @@ interface SearchSuggestion {
   type: string;
 }
 
+export function computeFocusHighlight(
+  focusNodeIds: string[] | null,
+  nodeIds: string[],
+): { matchingIds: Set<string>; shouldApply: boolean } {
+  if (!focusNodeIds || focusNodeIds.length === 0) {
+    return { matchingIds: new Set(), shouldApply: false };
+  }
+  const matchingIds = new Set(nodeIds.filter((id) => focusNodeIds.includes(id)));
+  return { matchingIds, shouldApply: matchingIds.size > 0 };
+}
+
 function GraphViewInner() {
   const graph = useStore((state) => state.graph);
   const focusNodeIds = useStore((state) => state.focusNodeIds);
@@ -732,12 +743,13 @@ function GraphViewInner() {
 
   // Highlight and center on nodes requested via the Issues view ("Show in graph")
   useEffect(() => {
-    if (!focusNodeIds || focusNodeIds.length === 0) return;
+    const { matchingIds, shouldApply } = computeFocusHighlight(
+      focusNodeIds,
+      nodes.map((n) => n.id),
+    );
+    if (!shouldApply) return;
 
-    const matchingNodes = nodes.filter((node) => focusNodeIds.includes(node.id));
-    if (matchingNodes.length === 0) return;
-
-    const matchingIds = new Set(matchingNodes.map((n) => n.id));
+    const matchingNodes = nodes.filter((n) => matchingIds.has(n.id));
 
     setNodes((nds) =>
       nds.map((n) => {
