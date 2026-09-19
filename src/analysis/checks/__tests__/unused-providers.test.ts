@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { findUnusedProviders } from '../unused-providers';
-import { buildSnapshot, moduleNode, providerNode, controllerNode, edge } from '../../__tests__/fixtures';
+import { buildSnapshot, moduleNode, providerNode, controllerNode, edge, routeMeta } from '../../__tests__/fixtures';
 
 describe('findUnusedProviders', () => {
   it('flags a provider with no incoming injects edges', () => {
@@ -72,5 +72,40 @@ describe('findUnusedProviders', () => {
     );
 
     expect(findUnusedProviders(snapshot)).toEqual([]);
+  });
+
+  it('does not flag a provider referenced only as a guard/pipe/interceptor/filter in a route chain', () => {
+    const snapshot = buildSnapshot(
+      [
+        providerNode('AuthGuard', 'AppModule'),
+        providerNode('ValidationPipe', 'AppModule'),
+        providerNode('LoggingInterceptor', 'AppModule'),
+        providerNode('ExceptionFilter', 'AppModule'),
+      ],
+      [],
+      [
+        routeMeta({
+          guards: ['AuthGuard'],
+          pipes: ['ValidationPipe'],
+          interceptors: ['LoggingInterceptor'],
+          filters: ['ExceptionFilter'],
+        }),
+      ],
+    );
+
+    expect(findUnusedProviders(snapshot)).toEqual([]);
+  });
+
+  it('still flags a provider that is not referenced in any route chain', () => {
+    const snapshot = buildSnapshot(
+      [providerNode('AuthGuard', 'AppModule'), providerNode('OrphanService', 'AppModule')],
+      [],
+      [routeMeta({ guards: ['AuthGuard'] })],
+    );
+
+    const issues = findUnusedProviders(snapshot);
+
+    expect(issues).toHaveLength(1);
+    expect(issues[0].nodeIds).toEqual(['provider:AppModule:OrphanService']);
   });
 });

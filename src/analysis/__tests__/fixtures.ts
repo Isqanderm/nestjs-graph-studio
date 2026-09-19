@@ -1,6 +1,10 @@
-import { GraphSnapshot, GraphNode, GraphEdge } from '../../snapshot/models';
+import { GraphSnapshot, GraphNode, GraphEdge, RouteMeta, RouteChain } from '../../snapshot/models';
 
-export function buildSnapshot(nodes: GraphNode[], edges: GraphEdge[]): GraphSnapshot {
+export function buildSnapshot(
+  nodes: GraphNode[],
+  edges: GraphEdge[],
+  routes: RouteMeta[] = [],
+): GraphSnapshot {
   return {
     createdAt: new Date().toISOString(),
     stats: {
@@ -11,7 +15,7 @@ export function buildSnapshot(nodes: GraphNode[], edges: GraphEdge[]): GraphSnap
     },
     nodes,
     edges,
-    routes: [],
+    routes,
   };
 }
 
@@ -46,4 +50,20 @@ export function controllerNode(name: string, moduleName: string): GraphNode {
 
 export function edge(from: string, to: string, kind: GraphEdge['kind']): GraphEdge {
   return { from, to, kind };
+}
+
+export function routeMeta(chain: Partial<RouteChain> = {}): RouteMeta {
+  return {
+    method: 'GET',
+    path: '/test',
+    controller: 'TestController',
+    handler: 'testHandler',
+    chain: {
+      guards: [],
+      pipes: [],
+      interceptors: [],
+      filters: [],
+      ...chain,
+    },
+  };
 }
