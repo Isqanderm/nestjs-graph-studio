@@ -17,6 +17,7 @@ import styles from './GraphView.module.css';
 import { GraphNode, NodeType, EdgeKind } from '../types';
 import CustomNode from './CustomNode';
 import CustomEdge from './CustomEdge';
+import GroupNode from './GroupNode';
 import { getLayoutedElements } from './layoutUtils';
 import { toPng } from 'html-to-image';
 import {
@@ -61,6 +62,7 @@ export interface CustomEdgeData {
 // Node types for React Flow
 const nodeTypes = {
   custom: CustomNode,
+  group: GroupNode,
 };
 
 // Edge types for React Flow
@@ -98,6 +100,7 @@ interface GraphSettings {
   highlightImplicitRequestScoped: boolean;
   detectCircularDeps: boolean;
   lockNodes: boolean;
+  groupByModule: boolean;
 }
 
 // Default settings
@@ -106,6 +109,7 @@ const DEFAULT_SETTINGS: GraphSettings = {
   highlightImplicitRequestScoped: false,
   detectCircularDeps: false,
   lockNodes: false,
+  groupByModule: false,
 };
 
 // Load settings from localStorage
@@ -549,6 +553,9 @@ function GraphViewInner() {
   // NOT on every settings toggle. Highlighting classNames (request-scoped,
   // circular deps, etc.) are applied afterwards by the dedicated effects
   // below, which react to `settings` without triggering a re-layout.
+  // `settings.groupByModule` is a deliberate exception: it changes the
+  // layout itself (dagre compound clustering), so it must trigger a
+  // re-layout, unlike every other setting here.
   useEffect(() => {
     if (!filteredData) return;
 
@@ -586,7 +593,9 @@ function GraphViewInner() {
     // Apply dagre layout
     const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
       flowNodes,
-      flowEdges
+      flowEdges,
+      undefined,
+      settings.groupByModule
     );
 
     setNodes(layoutedNodes);
@@ -596,7 +605,7 @@ function GraphViewInner() {
     setTimeout(() => {
       reactFlowInstance.fitView({ padding: 0.2 });
     }, 0);
-  }, [filteredData, reactFlowInstance, setNodes, setEdges]);
+  }, [filteredData, reactFlowInstance, setNodes, setEdges, settings.groupByModule]);
 
 
 
@@ -885,6 +894,7 @@ function GraphViewInner() {
   };
 
   const onNodeClick = useCallback((_event: React.MouseEvent, node: Node<CustomNodeData>) => {
+    if (node.type === 'group') return;
     setSelectedNode(node.data);
   }, []);
 
@@ -1041,6 +1051,23 @@ function GraphViewInner() {
                   </div>
                   <span className={styles.settingDescription}>
                     Make nodes non-movable.
+                  </span>
+                </div>
+              </label>
+
+              <label className={styles.settingItem}>
+                <Checkbox
+                  checked={settings.groupByModule}
+                  onCheckedChange={(checked) => updateSetting('groupByModule', checked as boolean)}
+                  className={styles.settingCheckbox}
+                />
+                <div className={styles.settingInfo}>
+                  <div className={styles.settingLabel}>
+                    <span className={styles.settingIcon}>📦</span>
+                    <span>Group by module</span>
+                  </div>
+                  <span className={styles.settingDescription}>
+                    Draw a labeled box around each module's nodes.
                   </span>
                 </div>
               </label>

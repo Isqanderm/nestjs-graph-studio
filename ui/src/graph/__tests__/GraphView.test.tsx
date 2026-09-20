@@ -449,6 +449,48 @@ describe('GraphView', () => {
       expect(layoutUtils.getLayoutedElements).toHaveBeenCalledTimes(1);
     });
 
+    it('should re-run dagre layout when "Group by module" is toggled, unlike highlighting settings', async () => {
+      const user = userEvent.setup();
+
+      render(
+        <TestWrapper>
+          <GraphView />
+        </TestWrapper>
+      );
+
+      await waitFor(() => {
+        expect(layoutUtils.getLayoutedElements).toHaveBeenCalledTimes(1);
+      });
+      expect(layoutUtils.getLayoutedElements).toHaveBeenLastCalledWith(
+        expect.anything(),
+        expect.anything(),
+        undefined,
+        false
+      );
+
+      const settingsButton = screen.getByRole('button', { name: /settings/i });
+      await user.click(settingsButton);
+
+      await waitFor(() => {
+        expect(screen.getByText(/group by module/i)).toBeInTheDocument();
+      });
+
+      const checkbox = screen.getByRole('checkbox', { name: /group by module/i });
+      await user.click(checkbox);
+
+      // Unlike highlighting-only settings, this one changes the layout
+      // itself (dagre compound clustering), so it must re-run getLayoutedElements.
+      await waitFor(() => {
+        expect(layoutUtils.getLayoutedElements).toHaveBeenCalledTimes(2);
+      });
+      expect(layoutUtils.getLayoutedElements).toHaveBeenLastCalledWith(
+        expect.anything(),
+        expect.anything(),
+        undefined,
+        true
+      );
+    });
+
     it('should toggle lock nodes setting', async () => {
       const user = userEvent.setup();
 

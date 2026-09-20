@@ -794,3 +794,34 @@
   fill: #FF8800;
 }
 
+/* Module grouping (swimlane) */
+/* React Flow ships default chrome for its built-in 'group' node type
+   (translucent bg, border, padding) via this class, which would show
+   through behind/around our own .groupNode styling — reset it. */
+:global(.react-flow__node-group) {
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+
+.groupNode {
+  width: 100%;
+  height: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 12px;
+  background-color: rgba(255, 255, 255, 0.025);
+  pointer-events: none;
+}
+
+.groupNodeLabel {
+  position: absolute;
+  top: 8px;
+  left: 14px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-eyebrow);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
