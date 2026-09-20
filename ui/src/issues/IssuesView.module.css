@@ -11,20 +11,20 @@
 
 .viewHeader {
   padding: 24px;
-  background-color: #2d2d30;
-  border-bottom: 1px solid #3e3e42;
+  background-color: var(--bg-tertiary);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .viewHeader h2 {
   font-size: 24px;
   font-weight: 600;
-  color: #cccccc;
+  color: var(--text-primary);
   margin-bottom: 8px;
 }
 
 .viewHeader p {
   font-size: 14px;
-  color: #9d9d9d;
+  color: var(--text-secondary);
   margin: 0;
 }
 
@@ -32,8 +32,8 @@
   display: flex;
   gap: 8px;
   padding: 16px 24px;
-  background-color: #333333;
-  border-bottom: 1px solid #3e3e42;
+  background-color: var(--bg-elevated);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .summaryBadge {
@@ -44,7 +44,7 @@
 .emptyState {
   padding: 48px 24px;
   text-align: center;
-  color: #9d9d9d;
+  color: var(--text-secondary);
   font-size: 14px;
 }
 
@@ -61,14 +61,14 @@
 .issueGroupTitle {
   font-size: 14px;
   font-weight: 600;
-  color: #cccccc;
+  color: var(--text-primary);
   text-transform: uppercase;
   margin-bottom: 12px;
 }
 
 .issueItem {
-  background-color: #252526;
-  border: 1px solid #3e3e42;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   padding: 16px;
   margin-bottom: 12px;
@@ -84,20 +84,20 @@
 .issueTitle {
   font-size: 14px;
   font-weight: 600;
-  color: #cccccc;
+  color: var(--text-primary);
 }
 
 .issueDescription {
   font-size: 13px;
-  color: #9d9d9d;
+  color: var(--text-secondary);
   margin: 0 0 8px 0;
   line-height: 1.5;
 }
 
 .issueSuggestedFix {
   font-size: 13px;
-  color: #cccccc;
-  background-color: #2d2d30;
+  color: var(--text-primary);
+  background-color: var(--bg-tertiary);
   border-radius: 6px;
   padding: 8px 12px;
   margin: 0 0 12px 0;
@@ -111,6 +111,6 @@
 }
 
 .loadingText {
-  color: #cccccc;
+  color: var(--text-primary);
   font-size: 18px;
 }
