@@ -200,15 +200,27 @@ jobs:
       - name: Verify publication
         run: |
           VERSION="${{ needs.validate.outputs.version }}"
-          echo "Waiting for npm to propagate..."
-          sleep 10
-          
-          # Verify the package is available on npm
-          if npm view nestjs-graph-studio@$VERSION version; then
-            echo "✅ Package successfully published to npm"
-          else
-            echo "⚠️ Package may not be immediately available on npm"
+          if [ -z "$VERSION" ]; then
+            VERSION=$(node -p "require('./package.json').version")
+            echo "⚠️ needs.validate.outputs.version was empty (e.g. a partial rerun) — falling back to package.json: $VERSION"
           fi
+
+          MAX_ATTEMPTS=18
+          SLEEP_SECONDS=10
+          echo "Waiting for nestjs-graph-studio@$VERSION to propagate on npm..."
+
+          for i in $(seq 1 "$MAX_ATTEMPTS"); do
+            PUBLISHED_VERSION=$(npm view nestjs-graph-studio@"$VERSION" version 2>/dev/null || true)
+            if [ "$PUBLISHED_VERSION" = "$VERSION" ]; then
+              echo "✅ Package nestjs-graph-studio@$VERSION is live on npm"
+              exit 0
+            fi
+            echo "Attempt $i/$MAX_ATTEMPTS: not yet available, retrying in ${SLEEP_SECONDS}s..."
+            sleep "$SLEEP_SECONDS"
+          done
+
+          echo "❌ nestjs-graph-studio@$VERSION did not become available on npm after $((MAX_ATTEMPTS * SLEEP_SECONDS)) seconds"
+          exit 1
 
   # Job 5: Create GitHub Release
   create-release:
