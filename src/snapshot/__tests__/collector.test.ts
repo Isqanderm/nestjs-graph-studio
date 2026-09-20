@@ -5,7 +5,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { SnapshotCollector } from '../collector';
 import { GQL_RESOLVER_NAME_METADATA } from '../graphql-collector';
-import { ModulesContainer, Reflector } from '@nestjs/core';
+import { ModulesContainer, Reflector, APP_GUARD } from '@nestjs/core';
 import { PATH_METADATA, METHOD_METADATA, PARAMTYPES_METADATA } from '@nestjs/common/constants';
 import { RequestMethod } from '@nestjs/common';
 import 'reflect-metadata';
@@ -683,6 +683,39 @@ describe('SnapshotCollector', () => {
       );
       expect(serviceNode).toBeDefined();
       expect(serviceNode?.isEntryPoint).toBe(false);
+    });
+
+    it('should mark a provider registered via { provide: APP_GUARD, useClass } as an entry point, keyed by token not display name', () => {
+      // Nest resolves this registration's display name to the useClass name
+      // ("AuthGuard"), not the token ("APP_GUARD") - only the Map key (the
+      // actual provide token) identifies it as a global guard registration.
+      class AuthGuard {}
+
+      const mockModule = {
+        metatype: class ApiModule {},
+        providers: new Map<any, any>([
+          [APP_GUARD, {
+            name: 'AuthGuard',
+            metatype: AuthGuard,
+            instance: {},
+          }],
+        ]),
+        controllers: new Map(),
+        injectables: new Map(),
+        imports: new Set(),
+        exports: new Set(),
+      };
+
+      const testContainer = new Map([[mockModule.metatype, mockModule]]) as unknown as ModulesContainer;
+      const testCollector = new SnapshotCollector(testContainer, new Reflector());
+
+      const snapshot = testCollector.collect();
+
+      const guardNode = snapshot.nodes.find(
+        (n) => n.type === 'PROVIDER' && n.name === 'AuthGuard',
+      );
+      expect(guardNode).toBeDefined();
+      expect(guardNode?.isEntryPoint).toBe(true);
     });
   });
 });

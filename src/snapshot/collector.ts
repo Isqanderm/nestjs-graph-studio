@@ -4,7 +4,7 @@
 
 import 'reflect-metadata';
 import { Injectable, RequestMethod, Inject } from '@nestjs/common';
-import { ModulesContainer, Reflector } from '@nestjs/core';
+import { ModulesContainer, Reflector, APP_GUARD, APP_INTERCEPTOR, APP_FILTER, APP_PIPE } from '@nestjs/core';
 import { InstanceWrapper } from '@nestjs/core/injector/instance-wrapper';
 import { Module } from '@nestjs/core/injector/module';
 import {
@@ -38,6 +38,14 @@ const METHOD_MAP: Record<number, string> = {
   [RequestMethod.HEAD]: 'HEAD',
   [RequestMethod.ALL]: 'ALL',
 };
+
+// Nest's own "register a global guard/interceptor/filter/pipe" tokens
+// (`{ provide: APP_GUARD, useClass: SomeGuard }`, per the official docs).
+// Nest's core consumes these directly — never via ordinary constructor
+// injection — regardless of what display name the `useClass` resolves to
+// (e.g. "AuthGuard"), so matching on the provider's *name* can never catch
+// this; only the actual provide token identifies it.
+const GLOBAL_APP_TOKENS = new Set<unknown>([APP_GUARD, APP_INTERCEPTOR, APP_FILTER, APP_PIPE]);
 
 @Injectable()
 export class SnapshotCollector {
@@ -137,8 +145,8 @@ export class SnapshotCollector {
     }
 
     // Collect providers
-    for (const [, wrapper] of moduleRef.providers) {
-      this.collectProvider(wrapper, moduleId, moduleName, moduleRef.metatype, nodes, edges, stats);
+    for (const [token, wrapper] of moduleRef.providers) {
+      this.collectProvider(wrapper, token, moduleId, moduleName, moduleRef.metatype, nodes, edges, stats);
     }
 
     // Collect controllers
@@ -149,6 +157,7 @@ export class SnapshotCollector {
 
   private collectProvider(
     wrapper: InstanceWrapper,
+    token: unknown,
     moduleId: string,
     moduleName: string,
     moduleMetatype: Function | undefined,
@@ -168,6 +177,7 @@ export class SnapshotCollector {
     if (!providerExists) {
       const isGraphQLResolver = Reflect.hasMetadata(GQL_RESOLVER_NAME_METADATA, wrapper.metatype);
       const isModuleSelfRegistration = wrapper.metatype === moduleMetatype;
+      const isGlobalAppToken = GLOBAL_APP_TOKENS.has(token);
 
       nodes.push({
         id: providerId,
@@ -175,7 +185,7 @@ export class SnapshotCollector {
         type: 'PROVIDER',
         scope: this.getScopeName(wrapper.scope),
         module: moduleName,
-        isEntryPoint: isGraphQLResolver || isModuleSelfRegistration,
+        isEntryPoint: isGraphQLResolver || isModuleSelfRegistration || isGlobalAppToken,
       });
       stats.providers++;
 
