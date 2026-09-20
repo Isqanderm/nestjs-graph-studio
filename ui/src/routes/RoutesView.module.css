@@ -135,3 +135,69 @@
 /* Dialog Content Styles (keeping Tailwind for Dialog components) */
 /* These are applied via className prop in the component */
 
+/* Execution Chain Diagram */
+.chainDiagram {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  overflow-x: auto;
+  padding: 4px 2px 12px;
+}
+
+.chainColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 120px;
+}
+
+.chainColumnLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-eyebrow);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+.chainColumnItems {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.chainNode {
+  background-color: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 13px;
+  color: var(--text-primary);
+  white-space: nowrap;
+  text-align: center;
+}
+
+.chainNodeActive {
+  background-color: var(--accent-color);
+  border-color: var(--accent-color);
+  color: white;
+  font-weight: 600;
+  font-family: 'Courier New', Courier, monospace;
+}
+
+.chainArrow {
+  align-self: center;
+  color: var(--text-tertiary);
+  font-size: 16px;
+  flex-shrink: 0;
+  margin-top: 20px;
+}
+
+.chainEmptyChip {
+  align-self: center;
+  color: var(--text-tertiary);
+  font-size: 12px;
+  white-space: nowrap;
+  margin-top: 20px;
+}
+

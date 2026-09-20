@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { fetchRoutes } from '../api';
 import { RouteMeta } from '../types';
 import styles from './RoutesView.module.css';
+import ExecutionChainDiagram from './ExecutionChainDiagram';
 import {
   Dialog,
   DialogContent,
@@ -124,81 +125,13 @@ function RoutesView() {
                 <span className="font-mono text-sm text-text-primary">{selectedRoute.path}</span>
               </div>
 
-              <div className="mb-5">
-                <h4 className="text-sm font-semibold text-text-secondary uppercase mb-2">
-                  Guards ({selectedRoute.chain.guards.length})
-                </h4>
-                {selectedRoute.chain.guards.length > 0 ? (
-                  <ul className="space-y-1">
-                    {selectedRoute.chain.guards.map((guard, idx) => (
-                      <li key={idx} className="px-3 py-2 bg-bg-tertiary rounded text-sm">
-                        {guard}
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-text-secondary italic text-sm">No guards</p>
-                )}
-              </div>
+              <ExecutionChainDiagram route={selectedRoute} />
 
-              <div className="mb-5">
-                <h4 className="text-sm font-semibold text-text-secondary uppercase mb-2">
-                  Pipes ({selectedRoute.chain.pipes.length})
-                </h4>
-                {selectedRoute.chain.pipes.length > 0 ? (
-                  <ul className="space-y-1">
-                    {selectedRoute.chain.pipes.map((pipe, idx) => (
-                      <li key={idx} className="px-3 py-2 bg-bg-tertiary rounded text-sm">
-                        {pipe}
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-text-secondary italic text-sm">No pipes</p>
-                )}
-              </div>
-
-              <div className="mb-5">
-                <h4 className="text-sm font-semibold text-text-secondary uppercase mb-2">
-                  Interceptors ({selectedRoute.chain.interceptors.length})
-                </h4>
-                {selectedRoute.chain.interceptors.length > 0 ? (
-                  <ul className="space-y-1">
-                    {selectedRoute.chain.interceptors.map((interceptor, idx) => (
-                      <li key={idx} className="px-3 py-2 bg-bg-tertiary rounded text-sm">
-                        {interceptor}
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-text-secondary italic text-sm">No interceptors</p>
-                )}
-              </div>
-
-              <div className="mb-5">
-                <h4 className="text-sm font-semibold text-text-secondary uppercase mb-2">
-                  Handler
-                </h4>
-                <p className="text-text-primary text-sm">
+              <div className="mt-2 text-sm text-text-secondary">
+                Handler:{' '}
+                <span className="text-text-primary font-mono">
                   {selectedRoute.controller}.{selectedRoute.handler}()
-                </p>
-              </div>
-
-              <div className="mb-5">
-                <h4 className="text-sm font-semibold text-text-secondary uppercase mb-2">
-                  Exception Filters ({selectedRoute.chain.filters.length})
-                </h4>
-                {selectedRoute.chain.filters.length > 0 ? (
-                  <ul className="space-y-1">
-                    {selectedRoute.chain.filters.map((filter, idx) => (
-                      <li key={idx} className="px-3 py-2 bg-bg-tertiary rounded text-sm">
-                        {filter}
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-text-secondary italic text-sm">No filters</p>
-                )}
+                </span>
               </div>
 
               <div className="flex justify-end mt-6">
