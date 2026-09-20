@@ -39,6 +39,10 @@ Unlike cloud-based monitoring solutions, Graph Studio runs **entirely on your lo
 ![Routes View](docs/screenshot-routes-view.png)
 *Browse all routes with their execution chains (guards, pipes, interceptors)*
 
+### Issues View
+![Issues View](docs/screenshot-issues-view.png)
+*Circular dependencies, unused providers, scope conflicts, and duplicate tokens — each with a suggested fix*
+
 ## ✨ Features
 
 ### Core Capabilities
