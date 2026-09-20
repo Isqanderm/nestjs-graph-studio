@@ -1,4 +1,4 @@
-import { IssueSeverity } from '../types';
+import { IssueSeverity } from '../../types';
 
 interface SeverityIconProps {
   severity: IssueSeverity;

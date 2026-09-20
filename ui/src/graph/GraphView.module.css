@@ -329,51 +329,111 @@
   position: absolute;
   top: 16px;
   right: 16px;
-  width: 320px;
-  background-color: var(--bg-secondary);
+  width: 300px;
+  background-color: rgba(255, 255, 255, 0.02);
   border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 20px;
+  border-radius: 10px;
+  padding: 16px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
   z-index: 10;
   max-height: calc(100% - 32px);
   overflow-y: auto;
 }
 
-.nodeDetails h3 {
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: 16px;
+.nodeDetailsHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
   padding-bottom: 12px;
+  margin-bottom: 12px;
   border-bottom: 1px solid var(--border-color);
 }
 
-.detailRow {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  margin-bottom: 12px;
-}
-
-.detailRow .label {
-  font-size: 12px;
+.nodeDetailsName {
+  font-size: 15px;
   font-weight: 600;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.detailRow .value {
-  font-size: 14px;
   color: var(--text-primary);
   word-break: break-word;
 }
 
+.nodeDetailsTypeBadge {
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  padding: 3px 7px;
+  border-radius: 5px;
+  white-space: nowrap;
+  color: var(--text-secondary);
+  background-color: rgba(255, 255, 255, 0.06);
+}
+
+.nodeDetailsTypeBadge[data-type="CONTROLLER"] {
+  color: var(--info-color);
+  background-color: rgba(117, 190, 255, 0.12);
+}
+
+.nodeDetailsTypeBadge[data-type="PROVIDER"] {
+  color: var(--success-color);
+  background-color: rgba(137, 209, 133, 0.12);
+}
+
+.nodeDetailsTypeBadge[data-type="ROUTE"] {
+  color: var(--accent-color);
+  background-color: rgba(224, 35, 78, 0.12);
+}
+
+.nodeDetailsTypeBadge[data-type="MISSING"] {
+  color: var(--error-color);
+  background-color: rgba(244, 135, 113, 0.12);
+}
+
+.nodeDetailsMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.nodeDetailsMetaItem {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.nodeDetailsMetaLabel {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-eyebrow);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.nodeDetailsMetaValue {
+  font-size: 13px;
+  color: var(--text-primary);
+  word-break: break-word;
+}
+
+.nodeDetailsMono {
+  font-family: 'Courier New', Courier, monospace;
+}
+
+.nodeDetailsHint {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  background-color: var(--bg-tertiary);
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin: 0 0 12px 0;
+}
+
 .nodeDetailsCloseButton {
-  margin-top: 16px;
+  margin-top: 4px;
   width: 100%;
-  background-color: #E0234E;
+  background-color: var(--accent-color);
   color: white;
   border: none;
   padding: 10px 20px;
@@ -386,7 +446,7 @@
 }
 
 .nodeDetailsCloseButton:hover {
-  background-color: #C41E44;
+  background-color: var(--accent-hover);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
 }
@@ -395,32 +455,42 @@
   transform: translateY(0);
 }
 
-/* Missing Dependency Styles */
-.missingDependencySection {
-  margin-top: 12px;
+/* Missing Dependency Section */
+.nodeDetailsMissingSection {
+  margin-top: 4px;
   padding-top: 12px;
-  border-top: 1px solid #4a5568;
+  border-top: 1px solid var(--border-color);
 }
 
-.missingDependencyLabel {
-  color: #DC2626;
-  font-weight: bold;
+.severityLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.severityLabel[data-severity="error"] {
+  color: var(--error-color);
+}
+
+.severityIcon {
+  flex-shrink: 0;
 }
 
 .missingDependencyList {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  margin-top: 3px;
 }
 
 .missingDependencyItem {
   font-size: 12px;
-  color: #DC2626;
-}
-
-.suggestedFix {
-  font-size: 12px;
-  color: #FFA500;
+  color: var(--text-primary);
 }
 
 /* Loading State */

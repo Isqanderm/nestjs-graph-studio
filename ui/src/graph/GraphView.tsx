@@ -18,6 +18,7 @@ import { GraphNode, NodeType, EdgeKind } from '../types';
 import CustomNode from './CustomNode';
 import CustomEdge from './CustomEdge';
 import GroupNode from './GroupNode';
+import SeverityIcon from '../components/ui/SeverityIcon';
 import { getLayoutedElements } from './layoutUtils';
 import { toPng } from 'html-to-image';
 import {
@@ -49,6 +50,7 @@ export interface CustomNodeData {
     requiredBy: string[];
     suggestedFix?: string;
   };
+  isEntryPoint?: boolean;
   highlightClasses?: string;
   executionOrder?: number;
   executionTiming?: number;
@@ -151,6 +153,17 @@ export function computeFocusHighlight(
   return { matchingIds, shouldApply: matchingIds.size > 0 };
 }
 
+// NestJS registers every module class as a provider of itself in that
+// module's own DI container (see isModuleSelfRegistration in
+// src/snapshot/collector.ts), which is why a module can show up twice in
+// the graph — once as its MODULE node, once as a same-named PROVIDER node.
+// Detected here purely from the node's own name/module (not the backend's
+// isEntryPoint flag, which also covers unrelated cases like GraphQL
+// resolvers) so the details panel can explain this specific confusion.
+export function isModuleSelfRegistration(node: { type: NodeType; label: string; module?: string }): boolean {
+  return node.type === 'PROVIDER' && node.module === node.label;
+}
+
 function GraphViewInner() {
   const graph = useStore((state) => state.graph);
   const focusNodeIds = useStore((state) => state.focusNodeIds);
@@ -221,13 +234,13 @@ function GraphViewInner() {
     if (node) {
       // Set the selected node data for the details panel
       setSelectedNode({
-        id: node.id,
-        name: node.data.label,
+        label: node.data.label,
         type: node.data.type,
         scope: node.data.scope,
         module: node.data.module,
         route: node.data.route,
         missing: node.data.missing,
+        isEntryPoint: node.data.isEntryPoint,
       });
 
       // Select the node in React Flow (this triggers the .selected class)
@@ -570,6 +583,7 @@ function GraphViewInner() {
         module: node.module,
         route: node.route,
         missing: node.missing,
+        isEntryPoint: node.isEntryPoint,
         highlightClasses: '',
       },
     }));
@@ -1128,43 +1142,58 @@ function GraphViewInner() {
           </ReactFlow>
         {selectedNode && (
           <div className={styles.nodeDetails}>
-            <h3>Node Details</h3>
-            <div className={styles.detailRow}>
-              <span className="label">Name:</span>
-              <span className="value">{selectedNode.label}</span>
+            <div className={styles.nodeDetailsHeader}>
+              <span className={styles.nodeDetailsName}>{selectedNode.label}</span>
+              <span className={styles.nodeDetailsTypeBadge} data-type={selectedNode.type}>
+                {selectedNode.type}
+              </span>
             </div>
-            <div className={styles.detailRow}>
-              <span className="label">Type:</span>
-              <span className="value">{selectedNode.type}</span>
-            </div>
-            {selectedNode.scope && (
-              <div className={styles.detailRow}>
-                <span className="label">Scope:</span>
-                <span className="value">{selectedNode.scope}</span>
+
+            {(selectedNode.module || selectedNode.scope) && (
+              <div className={styles.nodeDetailsMeta}>
+                {selectedNode.module && (
+                  <div className={styles.nodeDetailsMetaItem}>
+                    <span className={styles.nodeDetailsMetaLabel}>Module</span>
+                    <span className={styles.nodeDetailsMetaValue}>{selectedNode.module}</span>
+                  </div>
+                )}
+                {selectedNode.scope && (
+                  <div className={styles.nodeDetailsMetaItem}>
+                    <span className={styles.nodeDetailsMetaLabel}>Scope</span>
+                    <span className={styles.nodeDetailsMetaValue}>{selectedNode.scope}</span>
+                  </div>
+                )}
               </div>
             )}
-            {selectedNode.module && (
-              <div className={styles.detailRow}>
-                <span className="label">Module:</span>
-                <span className="value">{selectedNode.module}</span>
-              </div>
+
+            {isModuleSelfRegistration(selectedNode) && (
+              <p className={styles.nodeDetailsHint}>
+                NestJS registers every module's class as a provider of itself in its own DI
+                container — this isn't a separate service, just {selectedNode.module}'s own
+                entry.
+              </p>
             )}
+
             {selectedNode.route && (
-              <div className={styles.detailRow}>
-                <span className="label">Route:</span>
-                <span className="value">
-                  {selectedNode.route.method} {selectedNode.route.path}
-                </span>
+              <div className={styles.nodeDetailsMeta}>
+                <div className={styles.nodeDetailsMetaItem}>
+                  <span className={styles.nodeDetailsMetaLabel}>Route</span>
+                  <span className={`${styles.nodeDetailsMetaValue} ${styles.nodeDetailsMono}`}>
+                    {selectedNode.route.method} {selectedNode.route.path}
+                  </span>
+                </div>
               </div>
             )}
+
             {selectedNode.missing && (
-              <>
-                <div className={`${styles.detailRow} ${styles.missingDependencySection}`}>
-                  <span className={`label ${styles.missingDependencyLabel}`}>⚠️ Missing Dependency</span>
+              <div className={styles.nodeDetailsMissingSection}>
+                <div className={styles.severityLabel} data-severity="error">
+                  <SeverityIcon severity="error" className={styles.severityIcon} />
+                  Missing dependency
                 </div>
-                <div className={styles.detailRow}>
-                  <span className="label">Required By:</span>
-                  <div className={`value ${styles.missingDependencyList}`}>
+                <div className={styles.nodeDetailsMetaItem}>
+                  <span className={styles.nodeDetailsMetaLabel}>Required by</span>
+                  <div className={styles.missingDependencyList}>
                     {selectedNode.missing.requiredBy.map((nodeId: string) => {
                       const node = filteredData?.nodes.find((n) => n.id === nodeId);
                       return (
@@ -1176,15 +1205,11 @@ function GraphViewInner() {
                   </div>
                 </div>
                 {selectedNode.missing.suggestedFix && (
-                  <div className={styles.detailRow}>
-                    <span className="label">Suggested Fix:</span>
-                    <span className={`value ${styles.suggestedFix}`}>
-                      {selectedNode.missing.suggestedFix}
-                    </span>
-                  </div>
+                  <p className={styles.nodeDetailsHint}>💡 {selectedNode.missing.suggestedFix}</p>
                 )}
-              </>
+              </div>
             )}
+
             <button className={styles.nodeDetailsCloseButton} onClick={() => {
               setSelectedNode(null);
               // Deselect all nodes in React Flow

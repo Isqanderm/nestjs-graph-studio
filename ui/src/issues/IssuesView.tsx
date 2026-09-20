@@ -4,7 +4,7 @@ import { fetchIssues } from '../api';
 import { useStore } from '../store';
 import { Issue, IssueSeverity } from '../types';
 import { Button } from '../components/ui';
-import SeverityIcon from './SeverityIcon';
+import SeverityIcon from '../components/ui/SeverityIcon';
 import InlineCodeText from './InlineCodeText';
 import styles from './IssuesView.module.css';
 
