@@ -30,15 +30,35 @@
 
 .summaryBar {
   display: flex;
-  gap: 8px;
+  gap: 20px;
   padding: 16px 24px;
   background-color: var(--bg-elevated);
   border-bottom: 1px solid var(--border-color);
 }
 
-.summaryBadge {
+.summaryItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   font-size: 13px;
-  padding: 4px 10px;
+  color: var(--text-secondary);
+  text-transform: capitalize;
+}
+
+.summaryItem[data-severity="error"] {
+  color: var(--error-color);
+}
+
+.summaryItem[data-severity="warning"] {
+  color: var(--warning-color);
+}
+
+.summaryItem[data-severity="info"] {
+  color: var(--info-color);
+}
+
+.summaryIcon {
+  flex-shrink: 0;
 }
 
 .emptyState {
@@ -59,17 +79,18 @@
 }
 
 .issueGroupTitle {
-  font-size: 14px;
+  font-size: 11px;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--text-eyebrow);
   text-transform: uppercase;
+  letter-spacing: 0.08em;
   margin-bottom: 12px;
 }
 
 .issueItem {
-  background-color: var(--bg-secondary);
+  background-color: rgba(255, 255, 255, 0.02);
   border: 1px solid var(--border-color);
-  border-radius: 8px;
+  border-radius: 10px;
   padding: 16px;
   margin-bottom: 12px;
 }
@@ -77,8 +98,33 @@
 .issueItemHeader {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   margin-bottom: 8px;
+}
+
+.severityLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.severityLabel[data-severity="error"] {
+  color: var(--error-color);
+}
+
+.severityLabel[data-severity="warning"] {
+  color: var(--warning-color);
+}
+
+.severityLabel[data-severity="info"] {
+  color: var(--info-color);
+}
+
+.severityIcon {
+  flex-shrink: 0;
 }
 
 .issueTitle {
@@ -101,6 +147,11 @@
   border-radius: 6px;
   padding: 8px 12px;
   margin: 0 0 12px 0;
+}
+
+.inlineCode {
+  color: var(--text-primary);
+  font-weight: 500;
 }
 
 .loadingContainer {
