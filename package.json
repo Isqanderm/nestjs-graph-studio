@@ -1,6 +1,6 @@
 {
   "name": "nestjs-graph-studio",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "Local DevTools for NestJS applications with DI graph visualization",
   "main": "dist/index.js",
   "module": "dist/index.mjs",

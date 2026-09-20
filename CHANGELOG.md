@@ -7,11 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-09-20
+
 ### Added
+- **Static analysis (Issues)** - New `/graph-studio/issues` endpoint and Issues UI view
+  - Detects circular dependencies (module- and provider-level, via Tarjan's strongly-connected-components algorithm), unused providers, scope conflicts, and duplicate DI tokens
+  - Each finding includes a plain-language explanation and a suggested fix, with a one-click jump to the offending node(s) in the graph
 - **GraphQL resolver support** - New `/graph-studio/graphql` endpoint exposing detected GraphQL operations as JSON
   - Detects `@Query()`, `@Mutation()`, `@Subscription()`, and `@ResolveField()` resolvers via reflect-metadata, with no `@nestjs/graphql` dependency required
   - Adds a new "GraphQL" tab in the UI showing operations with their full execution chains (guards, pipes, interceptors, filters)
   - Kept deliberately isolated from the existing REST route collection/display pipeline — GraphQL operations never appear in `/graph-studio/routes` or `/graph-studio/graph`
+- **Focus Mode** - Filter the graph down to a single node's dependency neighborhood (both directions — depends on and used by — at a chosen depth: 1/2/3/All), with a synced, expandable dependency tree alongside it. Circular dependencies are shown as a terminated tree branch instead of recursing forever.
+- **Group by module** - Optional labeled swimlane boxes around each module's nodes, computed with dagre's compound-graph clustering so a module's members actually end up positioned next to each other
+
+### Changed
+- Redesigned the UI's visual theme (Issues, Routes, and the Graph node-details panel) to match NestJS Devtools' dark palette and structural patterns (severity icons, inline code for identifiers, eyebrow labels)
+- The Routes view's execution-chain detail now renders as a horizontal Guards → Interceptors → Pipes → Controller → Filters diagram instead of stacked lists
+- The Graph node-details panel now explains why a node like `HealthCheckModule` can appear twice (once as a MODULE, once as a same-named PROVIDER) — NestJS registers every module class as a provider of itself in its own DI container
+
+### Fixed
+- Settings toggles (highlight request-scoped, detect circular deps, lock nodes) no longer trigger a full graph re-layout. Previously every toggle re-ran the full dagre layout pass — measured at ~1.3s of main-thread blocking on a real ~400-node graph
+- Several static-analysis false positives: global `APP_GUARD`/`APP_INTERCEPTOR`/etc. tokens are now matched by prefix and keyed by DI token instead of exact-matching the display name; GraphQL resolver chains now also count toward "unused provider" detection; providers used only via a route's guard/pipe/interceptor/filter chain are no longer flagged as unused
+- Circular dependency detection now uses Tarjan's SCC algorithm, fixing incorrect results on diamond-shaped dependency graphs
+- Dependency matching now uses the DI token instead of display name, fixing false positives/negatives on renamed or aliased providers
+- A search-suggestion click populated the node-details panel with a `name` field instead of `label`, leaving the Name field blank when opened that way
+- A focus-highlight race condition that could cancel its own timers, or lose to the initial-mount fit-view
 
 ## [0.1.2] - 2025-10-31
 
