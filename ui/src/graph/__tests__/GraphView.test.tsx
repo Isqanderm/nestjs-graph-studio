@@ -543,5 +543,16 @@ describe('GraphView', () => {
       expect(searchInput).toHaveValue('');
     });
   });
+
+  // Note: the "Focus on this node" button only appears once a node is
+  // selected, and selecting a node (via a graph click or a search
+  // suggestion) looks the node up in the local `nodes` state — which this
+  // file's reactflow mock always returns as `[]` (see the mock's own
+  // comments above). That's a pre-existing test-infrastructure gap shared
+  // by every node-selection path, not specific to focus mode, so entering
+  // focus mode isn't exercised here; computeNeighborhood/buildDependencyTree
+  // (neighborhood.test.ts, buildDependencyTree.test.ts) and the tree pane
+  // itself (DependencyTree.test.tsx) carry the real test coverage, and the
+  // end-to-end flow is verified manually against a live graph.
 });
 

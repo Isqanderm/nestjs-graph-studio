@@ -20,6 +20,9 @@ import CustomEdge from './CustomEdge';
 import GroupNode from './GroupNode';
 import SeverityIcon from '../components/ui/SeverityIcon';
 import { getLayoutedElements } from './layoutUtils';
+import { computeNeighborhood, NeighborhoodDepth } from './neighborhood';
+import { buildDependencyTree } from './buildDependencyTree';
+import DependencyTree from './DependencyTree';
 import { toPng } from 'html-to-image';
 import {
   Dialog,
@@ -38,6 +41,7 @@ import {
 
 // Type definitions for custom node and edge data
 export interface CustomNodeData {
+  id: string;
   label: string;
   type: NodeType;
   scope?: string;
@@ -114,6 +118,8 @@ const DEFAULT_SETTINGS: GraphSettings = {
   groupByModule: false,
 };
 
+const DEPTH_OPTIONS: NeighborhoodDepth[] = [1, 2, 3, 'all'];
+
 // Load settings from localStorage
 function loadSettings(): GraphSettings {
   try {
@@ -182,6 +188,7 @@ function GraphViewInner() {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([]);
   const [showSettingsPanel, setShowSettingsPanel] = useState(false);
+  const [neighborhoodFocus, setNeighborhoodFocus] = useState<{ nodeId: string; depth: NeighborhoodDepth } | null>(null);
 
   // Update settings and save to localStorage
   const updateSetting = (key: keyof GraphSettings, value: boolean) => {
@@ -234,6 +241,7 @@ function GraphViewInner() {
     if (node) {
       // Set the selected node data for the details panel
       setSelectedNode({
+        id: node.data.id,
         label: node.data.label,
         type: node.data.type,
         scope: node.data.scope,
@@ -380,6 +388,19 @@ function GraphViewInner() {
 
     return filteredData.nodes.filter((n) => n.type === 'MISSING');
   }, [filteredData]);
+
+  // The tree pane shown alongside the graph in focus mode — built from the
+  // same edges the graph itself gets filtered to, so both panes always
+  // agree on what "AuthResolver's neighborhood at depth 2" means.
+  const dependencyTree = useMemo(() => {
+    if (!filteredData || !neighborhoodFocus) return null;
+    return buildDependencyTree(
+      filteredData.nodes,
+      filteredData.edges,
+      neighborhoodFocus.nodeId,
+      neighborhoodFocus.depth
+    );
+  }, [filteredData, neighborhoodFocus?.nodeId, neighborhoodFocus?.depth]);
 
   // Helper function to find all nodes that depend on request-scoped nodes (implicit request-scoped)
   const findImplicitRequestScoped = useMemo(() => {
@@ -568,15 +589,31 @@ function GraphViewInner() {
   // below, which react to `settings` without triggering a re-layout.
   // `settings.groupByModule` is a deliberate exception: it changes the
   // layout itself (dagre compound clustering), so it must trigger a
-  // re-layout, unlike every other setting here.
+  // re-layout, unlike every other setting here. `neighborhoodFocus` is the
+  // same kind of exception — entering/exiting focus mode or changing its
+  // depth restricts which nodes/edges even reach the layout, so it also
+  // needs a full re-layout.
   useEffect(() => {
     if (!filteredData) return;
 
-    const flowNodes: Node<CustomNodeData>[] = filteredData.nodes.map((node) => ({
+    let sourceNodes = filteredData.nodes;
+    let sourceEdges = filteredData.edges;
+    if (neighborhoodFocus) {
+      const neighborhood = computeNeighborhood(
+        filteredData.edges,
+        neighborhoodFocus.nodeId,
+        neighborhoodFocus.depth
+      );
+      sourceNodes = filteredData.nodes.filter((node) => neighborhood.nodeIds.has(node.id));
+      sourceEdges = neighborhood.edges;
+    }
+
+    const flowNodes: Node<CustomNodeData>[] = sourceNodes.map((node) => ({
       id: node.id,
       type: 'custom',
       position: { x: 0, y: 0 }, // Will be set by layout
       data: {
+        id: node.id,
         label: node.name,
         type: node.type,
         scope: node.scope,
@@ -588,7 +625,7 @@ function GraphViewInner() {
       },
     }));
 
-    const flowEdges: Edge<CustomEdgeData>[] = filteredData.edges.map((edge, idx) => ({
+    const flowEdges: Edge<CustomEdgeData>[] = sourceEdges.map((edge, idx) => ({
       id: `edge-${idx}`,
       source: edge.from,
       target: edge.to,
@@ -619,7 +656,15 @@ function GraphViewInner() {
     setTimeout(() => {
       reactFlowInstance.fitView({ padding: 0.2 });
     }, 0);
-  }, [filteredData, reactFlowInstance, setNodes, setEdges, settings.groupByModule]);
+  }, [
+    filteredData,
+    reactFlowInstance,
+    setNodes,
+    setEdges,
+    settings.groupByModule,
+    neighborhoodFocus?.nodeId,
+    neighborhoodFocus?.depth,
+  ]);
 
 
 
@@ -1105,6 +1150,38 @@ function GraphViewInner() {
           </Badge>
         )}
 
+        {neighborhoodFocus && (
+          <div className={styles.focusChip}>
+            <span className={styles.focusChipLabel}>
+              Focused: {dependencyTree?.root.name ?? neighborhoodFocus.nodeId}
+            </span>
+            <div className={styles.focusDepthControls}>
+              <span className={styles.focusDepthLabel}>Depth:</span>
+              {DEPTH_OPTIONS.map((depthOption) => (
+                <button
+                  key={String(depthOption)}
+                  className={`${styles.focusDepthButton} ${
+                    neighborhoodFocus.depth === depthOption ? styles.focusDepthButtonActive : ''
+                  }`}
+                  onClick={() =>
+                    setNeighborhoodFocus((prev) => (prev ? { ...prev, depth: depthOption } : prev))
+                  }
+                >
+                  {depthOption === 'all' ? 'All' : depthOption}
+                </button>
+              ))}
+            </div>
+            <button
+              className={styles.focusCloseButton}
+              onClick={() => setNeighborhoodFocus(null)}
+              aria-label="Exit focus mode"
+              title="Exit focus mode"
+            >
+              ×
+            </button>
+          </div>
+        )}
+
       </div>
 
       <div className={styles.graphWithPanel}>
@@ -1210,6 +1287,16 @@ function GraphViewInner() {
               </div>
             )}
 
+            <button
+              className={styles.nodeDetailsFocusButton}
+              onClick={() => {
+                setNeighborhoodFocus({ nodeId: selectedNode.id, depth: 2 });
+                setSelectedNode(null);
+                setNodes((nds) => nds.map((n) => ({ ...n, selected: false })));
+              }}
+            >
+              Focus on this node →
+            </button>
             <button className={styles.nodeDetailsCloseButton} onClick={() => {
               setSelectedNode(null);
               // Deselect all nodes in React Flow
@@ -1218,6 +1305,12 @@ function GraphViewInner() {
           </div>
         )}
         </div>
+        {neighborhoodFocus && dependencyTree && (
+          <DependencyTree
+            tree={dependencyTree}
+            onSelectNode={(id) => setFocusNodeIds([id])}
+          />
+        )}
       </div>
 
       {/* Diagnostics Modal */}

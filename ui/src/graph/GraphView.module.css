@@ -895,3 +895,186 @@
   white-space: nowrap;
 }
 
+
+/* Focus mode chip + depth controls */
+.focusChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: 8px;
+  padding: 6px 10px;
+  background-color: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+}
+
+.focusChipLabel {
+  font-size: 13px;
+  color: var(--text-primary);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.focusDepthControls {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.focusDepthLabel {
+  font-size: 11px;
+  color: var(--text-eyebrow);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-right: 2px;
+}
+
+.focusDepthButton {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.focusDepthButton:hover {
+  color: var(--text-primary);
+  border-color: var(--text-secondary);
+}
+
+.focusDepthButtonActive {
+  background-color: var(--accent-color);
+  border-color: var(--accent-color);
+  color: white;
+}
+
+.focusCloseButton {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 2px;
+}
+
+.focusCloseButton:hover {
+  color: var(--text-primary);
+}
+
+.nodeDetailsFocusButton {
+  margin-top: 4px;
+  width: 100%;
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  padding: 9px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+}
+
+.nodeDetailsFocusButton:hover {
+  background-color: var(--bg-elevated);
+}
+
+/* Dependency tree pane */
+.treePane {
+  width: 300px;
+  flex-shrink: 0;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 16px;
+  overflow-y: auto;
+}
+
+.treeRoot {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  padding-bottom: 12px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.treeSectionLabel {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-eyebrow);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 8px 0 4px;
+}
+
+.treeChildren {
+  list-style: none;
+  margin: 0;
+  padding-left: 16px;
+}
+
+.treeEmpty {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  font-style: italic;
+  padding: 2px 0;
+}
+
+.treeNode {
+  margin: 2px 0;
+}
+
+.treeNodeRow {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.treeToggle {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 10px;
+  width: 14px;
+  flex-shrink: 0;
+  padding: 0;
+}
+
+.treeToggleSpacer {
+  width: 14px;
+  flex-shrink: 0;
+}
+
+.treeNodeName {
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 1px 4px;
+  border-radius: 3px;
+  text-align: left;
+}
+
+.treeNodeName:hover {
+  background-color: var(--bg-tertiary);
+  color: var(--accent-color);
+}
+
+.treeNodeCycle {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  font-style: italic;
+  padding: 1px 4px;
+}
