@@ -689,12 +689,17 @@ describe('SnapshotCollector', () => {
       // Nest resolves this registration's display name to the useClass name
       // ("AuthGuard"), not the token ("APP_GUARD") - only the Map key (the
       // actual provide token) identifies it as a global guard registration.
+      // Real NestJS also appends a generated UUID to the token
+      // ("APP_GUARD (UUID: 348000ea...)") so multiple global guards in the
+      // same module don't collide on one Map key - confirmed by logging the
+      // real token against a real app - so this must be a prefix match, not
+      // exact equality.
       class AuthGuard {}
 
       const mockModule = {
         metatype: class ApiModule {},
         providers: new Map<any, any>([
-          [APP_GUARD, {
+          [`${APP_GUARD} (UUID: 348000ea8895c2a4635b5)`, {
             name: 'AuthGuard',
             metatype: AuthGuard,
             instance: {},

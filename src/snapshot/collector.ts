@@ -44,8 +44,13 @@ const METHOD_MAP: Record<number, string> = {
 // Nest's core consumes these directly — never via ordinary constructor
 // injection — regardless of what display name the `useClass` resolves to
 // (e.g. "AuthGuard"), so matching on the provider's *name* can never catch
-// this; only the actual provide token identifies it.
-const GLOBAL_APP_TOKENS = new Set<unknown>([APP_GUARD, APP_INTERCEPTOR, APP_FILTER, APP_PIPE]);
+// this; only the actual provide token identifies it. Nest keys each
+// registration in the providers Map by the token PLUS a generated UUID
+// suffix (e.g. "APP_GUARD (UUID: 348000ea...)"), so multiple global guards
+// in the same module don't collide on one Map key — confirmed by logging
+// the real token while investigating a false "unused provider" report.
+// A prefix match on the base constant is required, not exact equality.
+const GLOBAL_APP_TOKEN_PREFIXES = [APP_GUARD, APP_INTERCEPTOR, APP_FILTER, APP_PIPE];
 
 @Injectable()
 export class SnapshotCollector {
@@ -177,7 +182,7 @@ export class SnapshotCollector {
     if (!providerExists) {
       const isGraphQLResolver = Reflect.hasMetadata(GQL_RESOLVER_NAME_METADATA, wrapper.metatype);
       const isModuleSelfRegistration = wrapper.metatype === moduleMetatype;
-      const isGlobalAppToken = GLOBAL_APP_TOKENS.has(token);
+      const isGlobalAppToken = this.isGlobalAppToken(token);
 
       nodes.push({
         id: providerId,
@@ -323,6 +328,13 @@ export class SnapshotCollector {
       return token.name || undefined;
     }
     return String(token);
+  }
+
+  private isGlobalAppToken(token: unknown): boolean {
+    if (typeof token !== 'string') {
+      return false;
+    }
+    return GLOBAL_APP_TOKEN_PREFIXES.some((prefix) => token.startsWith(prefix));
   }
 
   private getName(item: any): string {
