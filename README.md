@@ -1,7 +1,7 @@
 <div align="center">
   <h1>🔍 NestJS Graph Studio</h1>
   <p><strong>Local DevTools for NestJS Applications</strong></p>
-  <p>Visualize your dependency injection graph, explore routes, and detect missing dependencies—all running locally with zero external dependencies.</p>
+  <p>Visualize your dependency injection graph, trace what depends on what, explore routes, and catch architectural issues—all running locally with zero external dependencies.</p>
 
   [![npm version](https://img.shields.io/npm/v/nestjs-graph-studio.svg)](https://www.npmjs.com/package/nestjs-graph-studio)
   [![Build Status](https://github.com/Isqanderm/nestjs-graph-studio/actions/workflows/ci.yml/badge.svg)](https://github.com/Isqanderm/nestjs-graph-studio/actions)
@@ -22,6 +22,8 @@ Unlike cloud-based monitoring solutions, Graph Studio runs **entirely on your lo
 ### Why NestJS Graph Studio?
 
 - **🔍 Understand Complex Dependencies** - Instantly see how your modules, providers, and controllers are connected
+- **🎯 Trace Dependencies, Not Just Browse Them** - Focus on any node to see just its dependency neighborhood, as a filtered graph and a synced expandable tree — the full graph is great for a bird's-eye view, but tracing "what does this actually depend on" needs a different lens
+- **🩺 Catch Architectural Issues Automatically** - Circular dependencies, unused providers, scope conflicts, and duplicate tokens, each with an actionable fix suggestion
 - **🐛 Debug DI Issues Faster** - Automatically detect missing dependencies with actionable fix suggestions
 - **🛣️ Explore Your API Surface** - Browse all routes with their complete execution chains (guards, pipes, interceptors)
 - **🔒 Privacy First** - Everything runs locally, your code never leaves your machine
@@ -45,7 +47,27 @@ Unlike cloud-based monitoring solutions, Graph Studio runs **entirely on your lo
   - Visual representation of your entire dependency injection graph
   - Pan, zoom, and navigate through complex module structures
   - Color-coded nodes by type (modules, providers, controllers, routes)
+  - Group nodes by module into labeled boxes, computed with dagre's compound-graph
+    clustering so a module's members actually end up next to each other
   - Export graph as PNG for documentation
+
+- **🎯 Focus Mode**
+  - Filter the graph down to a single node's dependency neighborhood — both
+    directions (what it depends on *and* what depends on it) — at a chosen
+    depth (1 / 2 / 3 / All), instead of hunting through the entire graph
+  - A synced, expandable dependency tree alongside the filtered graph;
+    clicking a tree row centers that node in the graph
+  - Circular dependencies are detected and shown as a terminated branch
+    instead of an infinite tree
+
+- **🩺 Static Analysis (Issues)**
+  - Circular dependencies (module- and provider-level)
+  - Unused providers (registered but never injected anywhere)
+  - Scope conflicts (a singleton depending, directly or transitively, on a
+    request-scoped provider)
+  - Duplicate DI tokens registered independently across modules
+  - Each finding includes a plain-language explanation and a suggested fix,
+    with a one-click jump to the offending node(s) in the graph
 
 - **🔴 Smart Missing Dependency Detection**
   - Automatically identifies missing or misconfigured dependencies
@@ -142,9 +164,10 @@ Open your browser and navigate to:
 http://localhost:3000/graph-studio
 ```
 
-You'll see three main views:
-- **📊 Graph View** - Interactive visualization of your DI graph with pan/zoom controls
+You'll see four main views:
+- **📊 Graph View** - Interactive visualization of your DI graph, with pan/zoom controls, module grouping, and focus mode for tracing a single node's dependencies
 - **🛣️ Routes View** - Complete list of all registered routes with execution chains
+- **⚠️ Issues View** - Circular dependencies, unused providers, scope conflicts, and duplicate tokens, each with a suggested fix
 - **🔮 GraphQL View** - All registered queries, mutations, subscriptions and field resolvers with execution chains
 
 That's it! You're ready to explore your NestJS application architecture.
@@ -247,6 +270,7 @@ When Graph Studio is enabled, the following endpoints are automatically register
 | `/graph-studio` | GET | Graph Studio web UI |
 | `/graph-studio/graph` | GET | DI graph snapshot (JSON) |
 | `/graph-studio/routes` | GET | Routes metadata (JSON) |
+| `/graph-studio/issues` | GET | Static analysis report (JSON) |
 | `/graph-studio/graphql` | GET | GraphQL resolver operations metadata (JSON) |
 | `/graph-studio/health` | GET | Health check endpoint |
 
@@ -265,6 +289,25 @@ When Graph Studio is enabled, the following endpoints are automatically register
   "nodes": [...],
   "edges": [...],
   "routes": [...]
+}
+```
+
+**Issues Report** (`GET /graph-studio/issues`):
+```json
+{
+  "createdAt": "2025-10-31T12:00:00.000Z",
+  "issues": [
+    {
+      "id": "unused-provider:provider:AppModule:OrphanService",
+      "category": "unused-provider",
+      "severity": "warning",
+      "title": "Unused provider: OrphanService",
+      "description": "\"OrphanService\" in AppModule is registered as a provider but is never injected anywhere in the application.",
+      "nodeIds": ["provider:AppModule:OrphanService"],
+      "suggestedFix": "Remove this provider if it is dead code, or verify it should be injected/exported somewhere."
+    }
+  ],
+  "summary": { "error": 0, "warning": 1, "info": 0 }
 }
 ```
 
@@ -307,6 +350,12 @@ import {
   GraphQLOperationKind,
   GraphQLStats,
 
+  // Issues (Static Analysis) Data Models
+  IssueReport,
+  Issue,
+  IssueCategory,
+  IssueSeverity,
+
   // Enums
   Scope,
   NodeType,
@@ -343,6 +392,7 @@ interface GraphNode {
   module?: string;
   route?: { method: string; path: string };
   missing?: { requiredBy: string[]; suggestedFix?: string };
+  isEntryPoint?: boolean; // e.g. a GraphQL resolver, a global APP_GUARD/APP_INTERCEPTOR token, or a module's own self-registered provider
 }
 
 interface GraphEdge {
@@ -390,6 +440,30 @@ interface GraphQLSnapshot {
   createdAt: string;
   stats: GraphQLStats;
   operations: GraphQLOperationMeta[];
+}
+
+// Issues (Static Analysis) Data Models
+type IssueSeverity = 'error' | 'warning' | 'info';
+type IssueCategory =
+  | 'circular-dependency'
+  | 'unused-provider'
+  | 'scope-conflict'
+  | 'duplicate-token';
+
+interface Issue {
+  id: string;
+  category: IssueCategory;
+  severity: IssueSeverity;
+  title: string;
+  description: string;
+  nodeIds: string[];
+  suggestedFix?: string;
+}
+
+interface IssueReport {
+  createdAt: string;
+  issues: Issue[];
+  summary: Record<IssueSeverity, number>;
 }
 
 interface GraphStats {
@@ -469,9 +543,10 @@ The module automatically detects missing dependencies by analyzing:
 **Symptoms:** Graph Studio UI is slow or unresponsive with large applications.
 
 **Solutions:**
-1. ✅ Use the search functionality to filter nodes instead of viewing the entire graph
-2. ✅ Consider breaking down large modules into smaller, more focused modules
-3. ✅ The graph uses virtualization for large datasets, but extremely large graphs (1000+ nodes) may still be slow
+1. ✅ Use **Focus Mode** (click a node → "Focus on this node") to filter the graph down to just that node's dependency neighborhood instead of viewing the entire graph at once — this is the recommended way to work with large graphs (100+ nodes)
+2. ✅ Use the search functionality to jump straight to a node
+3. ✅ Consider breaking down large modules into smaller, more focused modules
+4. ✅ Extremely large graphs (1000+ nodes) may still be slow to lay out on first load; toggling display settings (highlighting, module grouping) does not re-run the layout, only loading a new graph or changing Focus Mode's depth does
 
 ### TypeScript Compilation Errors
 
