@@ -544,81 +544,44 @@ function GraphViewInner() {
     };
   }, [filteredData, settings.detectCircularDeps]);
 
-  // Convert graph data to React Flow nodes and edges
+  // Convert graph data to React Flow nodes and edges and lay them out with
+  // dagre. This only needs to run when the underlying graph data changes —
+  // NOT on every settings toggle. Highlighting classNames (request-scoped,
+  // circular deps, etc.) are applied afterwards by the dedicated effects
+  // below, which react to `settings` without triggering a re-layout.
   useEffect(() => {
     if (!filteredData) return;
 
-    // Create React Flow nodes with initial highlighting classes based on settings
-    const flowNodes: Node<CustomNodeData>[] = filteredData.nodes.map((node) => {
-      let highlightClasses = '';
+    const flowNodes: Node<CustomNodeData>[] = filteredData.nodes.map((node) => ({
+      id: node.id,
+      type: 'custom',
+      position: { x: 0, y: 0 }, // Will be set by layout
+      data: {
+        label: node.name,
+        type: node.type,
+        scope: node.scope,
+        module: node.module,
+        route: node.route,
+        missing: node.missing,
+        highlightClasses: '',
+      },
+    }));
 
-      // Apply request-scoped highlighting
-      if (settings.highlightRequestScoped && node.scope === 'REQUEST') {
-        highlightClasses = `${highlightClasses} request-scoped`.trim();
-      }
-
-      // Apply implicit request-scoped highlighting
-      if (settings.highlightImplicitRequestScoped && findImplicitRequestScoped.has(node.id)) {
-        highlightClasses = `${highlightClasses} implicit-request-scoped`.trim();
-      }
-
-      // Apply circular dependency highlighting
-      if (settings.detectCircularDeps) {
-        if (circularDependencies.providerNodes.has(node.id)) {
-          highlightClasses = `${highlightClasses} circular-dependency-provider`.trim();
-        }
-        if (circularDependencies.moduleNodes.has(node.id)) {
-          highlightClasses = `${highlightClasses} circular-dependency-module`.trim();
-        }
-      }
-
-      return {
-        id: node.id,
-        type: 'custom',
-        position: { x: 0, y: 0 }, // Will be set by layout
-        data: {
-          label: node.name,
-          type: node.type,
-          scope: node.scope,
-          module: node.module,
-          route: node.route,
-          missing: node.missing,
-          highlightClasses,
-        },
-      };
-    });
-
-    // Create React Flow edges with initial className based on settings
-    const flowEdges: Edge<CustomEdgeData>[] = filteredData.edges.map((edge, idx) => {
-      let className = '';
-
-      // Apply circular dependency highlighting for edges
-      if (settings.detectCircularDeps) {
-        const edgeKey = `${edge.from}-${edge.to}`;
-        if (circularDependencies.providerEdges.has(edgeKey)) {
-          className = `${className} circular-dependency-provider`.trim();
-        }
-        if (circularDependencies.moduleEdges.has(edgeKey)) {
-          className = `${className} circular-dependency-module`.trim();
-        }
-      }
-
-      return {
-        id: `edge-${idx}`,
-        source: edge.from,
-        target: edge.to,
-        type: 'custom',
-        data: {
-          kind: edge.kind,
-        },
-        markerEnd: {
-          type: 'arrowclosed',
-          width: 15,
-          height: 15,
-        },
-        className,
-      };
-    });
+    const flowEdges: Edge<CustomEdgeData>[] = filteredData.edges.map((edge, idx) => ({
+      id: `edge-${idx}`,
+      source: edge.from,
+      target: edge.to,
+      type: 'custom',
+      data: {
+        kind: edge.kind,
+      },
+      markerEnd: {
+        type: 'arrowclosed',
+        width: 15,
+        height: 15,
+      },
+      className: '',
+    }));
 
     // Apply dagre layout
     const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
@@ -633,7 +596,7 @@ function GraphViewInner() {
     setTimeout(() => {
       reactFlowInstance.fitView({ padding: 0.2 });
     }, 0);
-  }, [filteredData, reactFlowInstance, setNodes, setEdges, settings, findImplicitRequestScoped, circularDependencies]);
+  }, [filteredData, reactFlowInstance, setNodes, setEdges]);
 
 
 
