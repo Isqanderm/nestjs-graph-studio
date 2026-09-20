@@ -7,13 +7,13 @@
   --color-nest-red-light: #FF2D55;
 
   /* DevTools Color Palette */
-  --color-devtools-bg: #1e1e1e;
-  --color-devtools-sidebar-bg: #252526;
-  --color-devtools-header-bg: #2d2d30;
-  --color-devtools-toolbar-bg: #333333;
+  --color-devtools-bg: #0b0909;
+  --color-devtools-sidebar-bg: #111010;
+  --color-devtools-header-bg: #1e1a1b;
+  --color-devtools-toolbar-bg: #242021;
   --color-devtools-hover-bg: rgba(255, 255, 255, 0.05);
   --color-devtools-active-bg: rgba(224, 35, 78, 0.15);
-  --color-devtools-border: #3e3e42;
+  --color-devtools-border: #2a2627;
   --color-devtools-icon-inactive: #9d9d9d;
   --color-devtools-icon-hover: #e0e0e0;
   --color-devtools-accent: #E0234E;
@@ -25,19 +25,20 @@
   --color-status-red: #f48771;
 
   /* Semantic Background Colors */
-  --color-bg-primary: #1e1e1e;
-  --color-bg-secondary: #252526;
-  --color-bg-tertiary: #2d2d30;
-  --color-bg-elevated: #333333;
+  --color-bg-primary: #0b0909;
+  --color-bg-secondary: #111010;
+  --color-bg-tertiary: #1e1a1b;
+  --color-bg-elevated: #242021;
 
   /* Text Colors */
-  --color-text-primary: #cccccc;
+  --color-text-primary: #f2f0ef;
   --color-text-secondary: #9d9d9d;
   --color-text-tertiary: #6e7681;
+  --color-text-eyebrow: #867c7d;
 
   /* Border Colors */
-  --color-border: #3e3e42;
-  --color-border-light: #2d2d30;
+  --color-border: #2a2627;
+  --color-border-light: #1e1a1b;
 
   /* Accent Colors */
   --color-accent: #E0234E;
@@ -55,13 +56,13 @@
   --nest-red: #E0234E;
   --nest-red-dark: #C41E44;
   --nest-red-light: #FF2D55;
-  --devtools-bg: #1e1e1e;
-  --devtools-sidebar-bg: #252526;
-  --devtools-header-bg: #2d2d30;
-  --devtools-toolbar-bg: #333333;
+  --devtools-bg: #0b0909;
+  --devtools-sidebar-bg: #111010;
+  --devtools-header-bg: #1e1a1b;
+  --devtools-toolbar-bg: #242021;
   --devtools-hover-bg: rgba(255, 255, 255, 0.05);
   --devtools-active-bg: rgba(224, 35, 78, 0.15);
-  --devtools-border: #3e3e42;
+  --devtools-border: #2a2627;
   --devtools-icon-inactive: #9d9d9d;
   --devtools-icon-hover: #e0e0e0;
   --devtools-accent: #E0234E;
@@ -69,15 +70,16 @@
   --devtools-blue: #75beff;
   --devtools-yellow: #dcdcaa;
   --devtools-red: #f48771;
-  --bg-primary: #1e1e1e;
-  --bg-secondary: #252526;
-  --bg-tertiary: #2d2d30;
-  --bg-elevated: #333333;
-  --text-primary: #cccccc;
+  --bg-primary: #0b0909;
+  --bg-secondary: #111010;
+  --bg-tertiary: #1e1a1b;
+  --bg-elevated: #242021;
+  --text-primary: #f2f0ef;
   --text-secondary: #9d9d9d;
   --text-tertiary: #6e7681;
-  --border-color: #3e3e42;
-  --border-color-light: #2d2d30;
+  --text-eyebrow: #867c7d;
+  --border-color: #2a2627;
+  --border-color-light: #1e1a1b;
   --accent-color: var(--nest-red);
   --accent-hover: var(--nest-red-dark);
   --accent-light: rgba(224, 35, 78, 0.15);

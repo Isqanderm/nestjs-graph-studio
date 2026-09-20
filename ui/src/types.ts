@@ -17,6 +17,7 @@ export interface GraphNode {
     requiredBy: string[]; // IDs of nodes that require this missing dependency
     suggestedFix?: string; // Suggested fix message
   };
+  isEntryPoint?: boolean;
 }
 
 export interface GraphEdge {

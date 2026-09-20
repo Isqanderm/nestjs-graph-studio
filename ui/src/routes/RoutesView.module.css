@@ -13,20 +13,20 @@
 /* View Header */
 .viewHeader {
   padding: 24px;
-  background-color: #2d2d30;
-  border-bottom: 1px solid #3e3e42;
+  background-color: var(--bg-tertiary);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .viewHeader h2 {
   font-size: 24px;
   font-weight: 600;
-  color: #cccccc;
+  color: var(--text-primary);
   margin-bottom: 8px;
 }
 
 .viewHeader p {
   font-size: 14px;
-  color: #9d9d9d;
+  color: var(--text-secondary);
   margin: 0;
 }
 
@@ -36,8 +36,8 @@
   align-items: center;
   gap: 8px;
   padding: 16px;
-  background-color: #333333;
-  border-bottom: 1px solid #3e3e42;
+  background-color: var(--bg-elevated);
+  border-bottom: 1px solid var(--border-color);
 }
 
 /* Filter Input */
@@ -45,9 +45,9 @@
   flex: 1;
   max-width: 28rem; /* max-w-md */
   padding: 8px 12px;
-  background-color: #252526;
-  color: #cccccc;
-  border: 1px solid #3e3e42;
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
   border-radius: 6px;
   font-size: 14px;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
@@ -55,12 +55,12 @@
 
 .filterInput:focus {
   outline: none;
-  border-color: #E0234E;
+  border-color: var(--accent-color);
   box-shadow: 0 0 0 1px rgba(224, 35, 78, 0.2);
 }
 
 .filterInput::placeholder {
-  color: #6e7681;
+  color: var(--text-tertiary);
 }
 
 /* Table Container */
@@ -73,21 +73,21 @@
 .table {
   width: 100%;
   border-collapse: collapse;
-  background-color: #252526;
+  background-color: var(--bg-secondary);
   border-radius: 8px;
   overflow: hidden;
 }
 
 .table thead {
-  background-color: #2d2d30;
+  background-color: var(--bg-tertiary);
 }
 
 .table th {
   padding: 12px;
   text-align: left;
-  border-bottom: 1px solid #3e3e42;
+  border-bottom: 1px solid var(--border-color);
   font-weight: 600;
-  color: #cccccc;
+  color: var(--text-primary);
   font-size: 14px;
   white-space: nowrap;
 }
@@ -97,14 +97,14 @@
 }
 
 .table tbody tr:hover {
-  background-color: #2d2d30;
+  background-color: var(--bg-tertiary);
 }
 
 .table td {
   padding: 12px;
   text-align: left;
-  border-bottom: 1px solid #3e3e42;
-  color: #cccccc;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-primary);
   font-size: 14px;
 }
 
@@ -116,7 +116,7 @@
 .pathCell {
   font-family: 'Courier New', Courier, monospace;
   font-size: 13px;
-  color: #cccccc;
+  color: var(--text-primary);
 }
 
 /* Loading State */
@@ -128,10 +128,76 @@
 }
 
 .loadingText {
-  color: #cccccc;
+  color: var(--text-primary);
   font-size: 18px;
 }
 
 /* Dialog Content Styles (keeping Tailwind for Dialog components) */
 /* These are applied via className prop in the component */
+
+/* Execution Chain Diagram */
+.chainDiagram {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  overflow-x: auto;
+  padding: 4px 2px 12px;
+}
+
+.chainColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 120px;
+}
+
+.chainColumnLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-eyebrow);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+.chainColumnItems {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.chainNode {
+  background-color: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 13px;
+  color: var(--text-primary);
+  white-space: nowrap;
+  text-align: center;
+}
+
+.chainNodeActive {
+  background-color: var(--accent-color);
+  border-color: var(--accent-color);
+  color: white;
+  font-weight: 600;
+  font-family: 'Courier New', Courier, monospace;
+}
+
+.chainArrow {
+  align-self: center;
+  color: var(--text-tertiary);
+  font-size: 16px;
+  flex-shrink: 0;
+  margin-top: 20px;
+}
+
+.chainEmptyChip {
+  align-self: center;
+  color: var(--text-tertiary);
+  font-size: 12px;
+  white-space: nowrap;
+  margin-top: 20px;
+}
 

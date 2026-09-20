@@ -3,7 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { fetchIssues } from '../api';
 import { useStore } from '../store';
 import { Issue, IssueSeverity } from '../types';
-import { Badge, Button } from '../components/ui';
+import { Button } from '../components/ui';
+import SeverityIcon from '../components/ui/SeverityIcon';
+import InlineCodeText from './InlineCodeText';
 import styles from './IssuesView.module.css';
 
 const SEVERITY_ORDER: IssueSeverity[] = ['error', 'warning', 'info'];
@@ -78,9 +80,12 @@ function IssuesView() {
 
       <div className={styles.summaryBar} data-testid="issues-summary">
         {SEVERITY_ORDER.map((severity) => (
-          <Badge key={severity} variant={severity} className={styles.summaryBadge}>
-            {summary[severity]} {severity}
-          </Badge>
+          <div key={severity} className={styles.summaryItem} data-severity={severity}>
+            <SeverityIcon severity={severity} className={styles.summaryIcon} />
+            <span>
+              {severity}: {summary[severity]}
+            </span>
+          </div>
         ))}
       </div>
 
@@ -98,12 +103,19 @@ function IssuesView() {
               {categoryIssues.map((issue) => (
                 <div key={issue.id} className={styles.issueItem} data-testid="issue-item">
                   <div className={styles.issueItemHeader}>
-                    <Badge variant={issue.severity}>{issue.severity}</Badge>
+                    <span className={styles.severityLabel} data-severity={issue.severity}>
+                      <SeverityIcon severity={issue.severity} className={styles.severityIcon} />
+                      {issue.severity.toUpperCase()}
+                    </span>
                     <span className={styles.issueTitle}>{issue.title}</span>
                   </div>
-                  <p className={styles.issueDescription}>{issue.description}</p>
+                  <p className={styles.issueDescription}>
+                    <InlineCodeText text={issue.description} />
+                  </p>
                   {issue.suggestedFix && (
-                    <p className={styles.issueSuggestedFix}>💡 {issue.suggestedFix}</p>
+                    <p className={styles.issueSuggestedFix}>
+                      💡 <InlineCodeText text={issue.suggestedFix} />
+                    </p>
                   )}
                   {issue.nodeIds.length > 0 && (
                     <Button

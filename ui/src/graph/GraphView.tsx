@@ -17,7 +17,12 @@ import styles from './GraphView.module.css';
 import { GraphNode, NodeType, EdgeKind } from '../types';
 import CustomNode from './CustomNode';
 import CustomEdge from './CustomEdge';
+import GroupNode from './GroupNode';
+import SeverityIcon from '../components/ui/SeverityIcon';
 import { getLayoutedElements } from './layoutUtils';
+import { computeNeighborhood, NeighborhoodDepth } from './neighborhood';
+import { buildDependencyTree } from './buildDependencyTree';
+import DependencyTree from './DependencyTree';
 import { toPng } from 'html-to-image';
 import {
   Dialog,
@@ -36,6 +41,7 @@ import {
 
 // Type definitions for custom node and edge data
 export interface CustomNodeData {
+  id: string;
   label: string;
   type: NodeType;
   scope?: string;
@@ -48,6 +54,7 @@ export interface CustomNodeData {
     requiredBy: string[];
     suggestedFix?: string;
   };
+  isEntryPoint?: boolean;
   highlightClasses?: string;
   executionOrder?: number;
   executionTiming?: number;
@@ -61,6 +68,7 @@ export interface CustomEdgeData {
 // Node types for React Flow
 const nodeTypes = {
   custom: CustomNode,
+  group: GroupNode,
 };
 
 // Edge types for React Flow
@@ -98,6 +106,7 @@ interface GraphSettings {
   highlightImplicitRequestScoped: boolean;
   detectCircularDeps: boolean;
   lockNodes: boolean;
+  groupByModule: boolean;
 }
 
 // Default settings
@@ -106,7 +115,10 @@ const DEFAULT_SETTINGS: GraphSettings = {
   highlightImplicitRequestScoped: false,
   detectCircularDeps: false,
   lockNodes: false,
+  groupByModule: false,
 };
+
+const DEPTH_OPTIONS: NeighborhoodDepth[] = [1, 2, 3, 'all'];
 
 // Load settings from localStorage
 function loadSettings(): GraphSettings {
@@ -147,6 +159,17 @@ export function computeFocusHighlight(
   return { matchingIds, shouldApply: matchingIds.size > 0 };
 }
 
+// NestJS registers every module class as a provider of itself in that
+// module's own DI container (see isModuleSelfRegistration in
+// src/snapshot/collector.ts), which is why a module can show up twice in
+// the graph — once as its MODULE node, once as a same-named PROVIDER node.
+// Detected here purely from the node's own name/module (not the backend's
+// isEntryPoint flag, which also covers unrelated cases like GraphQL
+// resolvers) so the details panel can explain this specific confusion.
+export function isModuleSelfRegistration(node: { type: NodeType; label: string; module?: string }): boolean {
+  return node.type === 'PROVIDER' && node.module === node.label;
+}
+
 function GraphViewInner() {
   const graph = useStore((state) => state.graph);
   const focusNodeIds = useStore((state) => state.focusNodeIds);
@@ -165,6 +188,7 @@ function GraphViewInner() {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([]);
   const [showSettingsPanel, setShowSettingsPanel] = useState(false);
+  const [neighborhoodFocus, setNeighborhoodFocus] = useState<{ nodeId: string; depth: NeighborhoodDepth } | null>(null);
 
   // Update settings and save to localStorage
   const updateSetting = (key: keyof GraphSettings, value: boolean) => {
@@ -217,13 +241,14 @@ function GraphViewInner() {
     if (node) {
       // Set the selected node data for the details panel
       setSelectedNode({
-        id: node.id,
-        name: node.data.label,
+        id: node.data.id,
+        label: node.data.label,
         type: node.data.type,
         scope: node.data.scope,
         module: node.data.module,
         route: node.data.route,
         missing: node.data.missing,
+        isEntryPoint: node.data.isEntryPoint,
       });
 
       // Select the node in React Flow (this triggers the .selected class)
@@ -363,6 +388,19 @@ function GraphViewInner() {
 
     return filteredData.nodes.filter((n) => n.type === 'MISSING');
   }, [filteredData]);
+
+  // The tree pane shown alongside the graph in focus mode — built from the
+  // same edges the graph itself gets filtered to, so both panes always
+  // agree on what "AuthResolver's neighborhood at depth 2" means.
+  const dependencyTree = useMemo(() => {
+    if (!filteredData || !neighborhoodFocus) return null;
+    return buildDependencyTree(
+      filteredData.nodes,
+      filteredData.edges,
+      neighborhoodFocus.nodeId,
+      neighborhoodFocus.depth
+    );
+  }, [filteredData, neighborhoodFocus?.nodeId, neighborhoodFocus?.depth]);
 
   // Helper function to find all nodes that depend on request-scoped nodes (implicit request-scoped)
   const findImplicitRequestScoped = useMemo(() => {
@@ -544,86 +582,71 @@ function GraphViewInner() {
     };
   }, [filteredData, settings.detectCircularDeps]);
 
-  // Convert graph data to React Flow nodes and edges
+  // Convert graph data to React Flow nodes and edges and lay them out with
+  // dagre. This only needs to run when the underlying graph data changes —
+  // NOT on every settings toggle. Highlighting classNames (request-scoped,
+  // circular deps, etc.) are applied afterwards by the dedicated effects
+  // below, which react to `settings` without triggering a re-layout.
+  // `settings.groupByModule` is a deliberate exception: it changes the
+  // layout itself (dagre compound clustering), so it must trigger a
+  // re-layout, unlike every other setting here. `neighborhoodFocus` is the
+  // same kind of exception — entering/exiting focus mode or changing its
+  // depth restricts which nodes/edges even reach the layout, so it also
+  // needs a full re-layout.
   useEffect(() => {
     if (!filteredData) return;
 
-    // Create React Flow nodes with initial highlighting classes based on settings
-    const flowNodes: Node<CustomNodeData>[] = filteredData.nodes.map((node) => {
-      let highlightClasses = '';
+    let sourceNodes = filteredData.nodes;
+    let sourceEdges = filteredData.edges;
+    if (neighborhoodFocus) {
+      const neighborhood = computeNeighborhood(
+        filteredData.edges,
+        neighborhoodFocus.nodeId,
+        neighborhoodFocus.depth
+      );
+      sourceNodes = filteredData.nodes.filter((node) => neighborhood.nodeIds.has(node.id));
+      sourceEdges = neighborhood.edges;
+    }
 
-      // Apply request-scoped highlighting
-      if (settings.highlightRequestScoped && node.scope === 'REQUEST') {
-        highlightClasses = `${highlightClasses} request-scoped`.trim();
-      }
-
-      // Apply implicit request-scoped highlighting
-      if (settings.highlightImplicitRequestScoped && findImplicitRequestScoped.has(node.id)) {
-        highlightClasses = `${highlightClasses} implicit-request-scoped`.trim();
-      }
-
-      // Apply circular dependency highlighting
-      if (settings.detectCircularDeps) {
-        if (circularDependencies.providerNodes.has(node.id)) {
-          highlightClasses = `${highlightClasses} circular-dependency-provider`.trim();
-        }
-        if (circularDependencies.moduleNodes.has(node.id)) {
-          highlightClasses = `${highlightClasses} circular-dependency-module`.trim();
-        }
-      }
-
-      return {
+    const flowNodes: Node<CustomNodeData>[] = sourceNodes.map((node) => ({
+      id: node.id,
+      type: 'custom',
+      position: { x: 0, y: 0 }, // Will be set by layout
+      data: {
         id: node.id,
-        type: 'custom',
-        position: { x: 0, y: 0 }, // Will be set by layout
-        data: {
-          label: node.name,
-          type: node.type,
-          scope: node.scope,
-          module: node.module,
-          route: node.route,
-          missing: node.missing,
-          highlightClasses,
-        },
-      };
-    });
+        label: node.name,
+        type: node.type,
+        scope: node.scope,
+        module: node.module,
+        route: node.route,
+        missing: node.missing,
+        isEntryPoint: node.isEntryPoint,
+        highlightClasses: '',
+      },
+    }));
 
-    // Create React Flow edges with initial className based on settings
-    const flowEdges: Edge<CustomEdgeData>[] = filteredData.edges.map((edge, idx) => {
-      let className = '';
-
-      // Apply circular dependency highlighting for edges
-      if (settings.detectCircularDeps) {
-        const edgeKey = `${edge.from}-${edge.to}`;
-        if (circularDependencies.providerEdges.has(edgeKey)) {
-          className = `${className} circular-dependency-provider`.trim();
-        }
-        if (circularDependencies.moduleEdges.has(edgeKey)) {
-          className = `${className} circular-dependency-module`.trim();
-        }
-      }
-
-      return {
-        id: `edge-${idx}`,
-        source: edge.from,
-        target: edge.to,
-        type: 'custom',
-        data: {
-          kind: edge.kind,
-        },
-        markerEnd: {
-          type: 'arrowclosed',
-          width: 15,
-          height: 15,
-        },
-        className,
-      };
-    });
+    const flowEdges: Edge<CustomEdgeData>[] = sourceEdges.map((edge, idx) => ({
+      id: `edge-${idx}`,
+      source: edge.from,
+      target: edge.to,
+      type: 'custom',
+      data: {
+        kind: edge.kind,
+      },
+      markerEnd: {
+        type: 'arrowclosed',
+        width: 15,
+        height: 15,
+      },
+      className: '',
+    }));
 
     // Apply dagre layout
     const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
       flowNodes,
-      flowEdges
+      flowEdges,
+      undefined,
+      settings.groupByModule
     );
 
     setNodes(layoutedNodes);
@@ -633,7 +656,15 @@ function GraphViewInner() {
     setTimeout(() => {
       reactFlowInstance.fitView({ padding: 0.2 });
     }, 0);
-  }, [filteredData, reactFlowInstance, setNodes, setEdges, settings, findImplicitRequestScoped, circularDependencies]);
+  }, [
+    filteredData,
+    reactFlowInstance,
+    setNodes,
+    setEdges,
+    settings.groupByModule,
+    neighborhoodFocus?.nodeId,
+    neighborhoodFocus?.depth,
+  ]);
 
 
 
@@ -922,6 +953,7 @@ function GraphViewInner() {
   };
 
   const onNodeClick = useCallback((_event: React.MouseEvent, node: Node<CustomNodeData>) => {
+    if (node.type === 'group') return;
     setSelectedNode(node.data);
   }, []);
 
@@ -1081,6 +1113,23 @@ function GraphViewInner() {
                   </span>
                 </div>
               </label>
+
+              <label className={styles.settingItem}>
+                <Checkbox
+                  checked={settings.groupByModule}
+                  onCheckedChange={(checked) => updateSetting('groupByModule', checked as boolean)}
+                  className={styles.settingCheckbox}
+                />
+                <div className={styles.settingInfo}>
+                  <div className={styles.settingLabel}>
+                    <span className={styles.settingIcon}>📦</span>
+                    <span>Group by module</span>
+                  </div>
+                  <span className={styles.settingDescription}>
+                    Draw a labeled box around each module's nodes.
+                  </span>
+                </div>
+              </label>
             </div>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -1099,6 +1148,38 @@ function GraphViewInner() {
           <Badge variant="success" className="ml-2 px-3 py-1.5 text-sm">
             ✓ No errors
           </Badge>
+        )}
+
+        {neighborhoodFocus && (
+          <div className={styles.focusChip}>
+            <span className={styles.focusChipLabel}>
+              Focused: {dependencyTree?.root.name ?? neighborhoodFocus.nodeId}
+            </span>
+            <div className={styles.focusDepthControls}>
+              <span className={styles.focusDepthLabel}>Depth:</span>
+              {DEPTH_OPTIONS.map((depthOption) => (
+                <button
+                  key={String(depthOption)}
+                  className={`${styles.focusDepthButton} ${
+                    neighborhoodFocus.depth === depthOption ? styles.focusDepthButtonActive : ''
+                  }`}
+                  onClick={() =>
+                    setNeighborhoodFocus((prev) => (prev ? { ...prev, depth: depthOption } : prev))
+                  }
+                >
+                  {depthOption === 'all' ? 'All' : depthOption}
+                </button>
+              ))}
+            </div>
+            <button
+              className={styles.focusCloseButton}
+              onClick={() => setNeighborhoodFocus(null)}
+              aria-label="Exit focus mode"
+              title="Exit focus mode"
+            >
+              ×
+            </button>
+          </div>
         )}
 
       </div>
@@ -1138,43 +1219,58 @@ function GraphViewInner() {
           </ReactFlow>
         {selectedNode && (
           <div className={styles.nodeDetails}>
-            <h3>Node Details</h3>
-            <div className={styles.detailRow}>
-              <span className="label">Name:</span>
-              <span className="value">{selectedNode.label}</span>
+            <div className={styles.nodeDetailsHeader}>
+              <span className={styles.nodeDetailsName}>{selectedNode.label}</span>
+              <span className={styles.nodeDetailsTypeBadge} data-type={selectedNode.type}>
+                {selectedNode.type}
+              </span>
             </div>
-            <div className={styles.detailRow}>
-              <span className="label">Type:</span>
-              <span className="value">{selectedNode.type}</span>
-            </div>
-            {selectedNode.scope && (
-              <div className={styles.detailRow}>
-                <span className="label">Scope:</span>
-                <span className="value">{selectedNode.scope}</span>
+
+            {(selectedNode.module || selectedNode.scope) && (
+              <div className={styles.nodeDetailsMeta}>
+                {selectedNode.module && (
+                  <div className={styles.nodeDetailsMetaItem}>
+                    <span className={styles.nodeDetailsMetaLabel}>Module</span>
+                    <span className={styles.nodeDetailsMetaValue}>{selectedNode.module}</span>
+                  </div>
+                )}
+                {selectedNode.scope && (
+                  <div className={styles.nodeDetailsMetaItem}>
+                    <span className={styles.nodeDetailsMetaLabel}>Scope</span>
+                    <span className={styles.nodeDetailsMetaValue}>{selectedNode.scope}</span>
+                  </div>
+                )}
               </div>
             )}
-            {selectedNode.module && (
-              <div className={styles.detailRow}>
-                <span className="label">Module:</span>
-                <span className="value">{selectedNode.module}</span>
-              </div>
+
+            {isModuleSelfRegistration(selectedNode) && (
+              <p className={styles.nodeDetailsHint}>
+                NestJS registers every module's class as a provider of itself in its own DI
+                container — this isn't a separate service, just {selectedNode.module}'s own
+                entry.
+              </p>
             )}
+
             {selectedNode.route && (
-              <div className={styles.detailRow}>
-                <span className="label">Route:</span>
-                <span className="value">
-                  {selectedNode.route.method} {selectedNode.route.path}
-                </span>
+              <div className={styles.nodeDetailsMeta}>
+                <div className={styles.nodeDetailsMetaItem}>
+                  <span className={styles.nodeDetailsMetaLabel}>Route</span>
+                  <span className={`${styles.nodeDetailsMetaValue} ${styles.nodeDetailsMono}`}>
+                    {selectedNode.route.method} {selectedNode.route.path}
+                  </span>
+                </div>
               </div>
             )}
+
             {selectedNode.missing && (
-              <>
-                <div className={`${styles.detailRow} ${styles.missingDependencySection}`}>
-                  <span className={`label ${styles.missingDependencyLabel}`}>⚠️ Missing Dependency</span>
+              <div className={styles.nodeDetailsMissingSection}>
+                <div className={styles.severityLabel} data-severity="error">
+                  <SeverityIcon severity="error" className={styles.severityIcon} />
+                  Missing dependency
                 </div>
-                <div className={styles.detailRow}>
-                  <span className="label">Required By:</span>
-                  <div className={`value ${styles.missingDependencyList}`}>
+                <div className={styles.nodeDetailsMetaItem}>
+                  <span className={styles.nodeDetailsMetaLabel}>Required by</span>
+                  <div className={styles.missingDependencyList}>
                     {selectedNode.missing.requiredBy.map((nodeId: string) => {
                       const node = filteredData?.nodes.find((n) => n.id === nodeId);
                       return (
@@ -1186,15 +1282,21 @@ function GraphViewInner() {
                   </div>
                 </div>
                 {selectedNode.missing.suggestedFix && (
-                  <div className={styles.detailRow}>
-                    <span className="label">Suggested Fix:</span>
-                    <span className={`value ${styles.suggestedFix}`}>
-                      {selectedNode.missing.suggestedFix}
-                    </span>
-                  </div>
+                  <p className={styles.nodeDetailsHint}>💡 {selectedNode.missing.suggestedFix}</p>
                 )}
-              </>
+              </div>
             )}
+
+            <button
+              className={styles.nodeDetailsFocusButton}
+              onClick={() => {
+                setNeighborhoodFocus({ nodeId: selectedNode.id, depth: 2 });
+                setSelectedNode(null);
+                setNodes((nds) => nds.map((n) => ({ ...n, selected: false })));
+              }}
+            >
+              Focus on this node →
+            </button>
             <button className={styles.nodeDetailsCloseButton} onClick={() => {
               setSelectedNode(null);
               // Deselect all nodes in React Flow
@@ -1203,6 +1305,12 @@ function GraphViewInner() {
           </div>
         )}
         </div>
+        {neighborhoodFocus && dependencyTree && (
+          <DependencyTree
+            tree={dependencyTree}
+            onSelectNode={(id) => setFocusNodeIds([id])}
+          />
+        )}
       </div>
 
       {/* Diagnostics Modal */}

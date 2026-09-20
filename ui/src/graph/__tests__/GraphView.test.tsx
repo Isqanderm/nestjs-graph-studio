@@ -5,31 +5,58 @@ import { BrowserRouter } from 'react-router-dom';
 import GraphView from '../GraphView';
 import { useStore } from '../../store';
 import { GraphSnapshot, GraphNode, GraphEdge } from '../../types';
+import * as layoutUtils from '../layoutUtils';
+
+// Spy on the real dagre layout so we can assert it isn't re-run needlessly
+vi.mock('../layoutUtils', async () => {
+  const actual = await vi.importActual<typeof import('../layoutUtils')>('../layoutUtils');
+  return {
+    ...actual,
+    getLayoutedElements: vi.fn(actual.getLayoutedElements),
+  };
+});
 
 // Mock React Flow
-vi.mock('reactflow', () => ({
-  default: ({ children }: any) => <div data-testid="react-flow">{children}</div>,
-  ReactFlowProvider: ({ children }: any) => <div>{children}</div>,
-  Controls: () => <div data-testid="react-flow-controls" />,
-  Background: () => <div data-testid="react-flow-background" />,
-  MiniMap: () => <div data-testid="react-flow-minimap" />,
-  Panel: ({ children }: any) => <div>{children}</div>,
-  useNodesState: () => [[], vi.fn(), vi.fn()],
-  useEdgesState: () => [[], vi.fn(), vi.fn()],
-  useReactFlow: () => ({
+vi.mock('reactflow', () => {
+  // The real `useReactFlow()` returns a stable object reference across
+  // renders (it comes from context). Mocking it with a fresh object literal
+  // per call would make every component render look like a "new instance"
+  // to effects that depend on it, masking real dependency-array bugs.
+  const reactFlowInstanceStub = {
     fitView: vi.fn(),
     setViewport: vi.fn(),
     getViewport: vi.fn(() => ({ x: 0, y: 0, zoom: 1 })),
-  }),
-  getRectOfNodes: vi.fn(() => ({ x: 0, y: 0, width: 100, height: 100 })),
-  getTransformForBounds: vi.fn(() => [0, 0, 1]),
-  Position: {
-    Left: 'left',
-    Right: 'right',
-    Top: 'top',
-    Bottom: 'bottom',
-  },
-}));
+    getNodes: vi.fn(() => []),
+  };
+
+  // React's own useState setters are referentially stable across renders;
+  // fresh vi.fn() per call here would (like the reactFlowInstance above)
+  // falsely fail any effect whose deps include them.
+  const setNodesStub = vi.fn();
+  const onNodesChangeStub = vi.fn();
+  const setEdgesStub = vi.fn();
+  const onEdgesChangeStub = vi.fn();
+
+  return {
+    default: ({ children }: any) => <div data-testid="react-flow">{children}</div>,
+    ReactFlowProvider: ({ children }: any) => <div>{children}</div>,
+    Controls: () => <div data-testid="react-flow-controls" />,
+    Background: () => <div data-testid="react-flow-background" />,
+    MiniMap: () => <div data-testid="react-flow-minimap" />,
+    Panel: ({ children }: any) => <div>{children}</div>,
+    useNodesState: () => [[], setNodesStub, onNodesChangeStub],
+    useEdgesState: () => [[], setEdgesStub, onEdgesChangeStub],
+    useReactFlow: () => reactFlowInstanceStub,
+    getRectOfNodes: vi.fn(() => ({ x: 0, y: 0, width: 100, height: 100 })),
+    getTransformForBounds: vi.fn(() => [0, 0, 1]),
+    Position: {
+      Left: 'left',
+      Right: 'right',
+      Top: 'top',
+      Bottom: 'bottom',
+    },
+  };
+});
 
 // Mock html-to-image
 vi.mock('html-to-image', () => ({
@@ -393,6 +420,77 @@ describe('GraphView', () => {
       expect(checkbox).toBeChecked();
     });
 
+    it('should not re-run dagre layout when only a highlighting setting changes', async () => {
+      const user = userEvent.setup();
+
+      render(
+        <TestWrapper>
+          <GraphView />
+        </TestWrapper>
+      );
+
+      await waitFor(() => {
+        expect(layoutUtils.getLayoutedElements).toHaveBeenCalledTimes(1);
+      });
+
+      const settingsButton = screen.getByRole('button', { name: /settings/i });
+      await user.click(settingsButton);
+
+      await waitFor(() => {
+        expect(screen.getByText(/detect circular/i)).toBeInTheDocument();
+      });
+
+      const checkbox = screen.getByRole('checkbox', { name: /detect circular/i });
+      await user.click(checkbox);
+
+      // Toggling a highlighting-only setting must not trigger a full
+      // re-layout — that's an expensive dagre pass that should only run
+      // when the underlying graph data changes.
+      expect(layoutUtils.getLayoutedElements).toHaveBeenCalledTimes(1);
+    });
+
+    it('should re-run dagre layout when "Group by module" is toggled, unlike highlighting settings', async () => {
+      const user = userEvent.setup();
+
+      render(
+        <TestWrapper>
+          <GraphView />
+        </TestWrapper>
+      );
+
+      await waitFor(() => {
+        expect(layoutUtils.getLayoutedElements).toHaveBeenCalledTimes(1);
+      });
+      expect(layoutUtils.getLayoutedElements).toHaveBeenLastCalledWith(
+        expect.anything(),
+        expect.anything(),
+        undefined,
+        false
+      );
+
+      const settingsButton = screen.getByRole('button', { name: /settings/i });
+      await user.click(settingsButton);
+
+      await waitFor(() => {
+        expect(screen.getByText(/group by module/i)).toBeInTheDocument();
+      });
+
+      const checkbox = screen.getByRole('checkbox', { name: /group by module/i });
+      await user.click(checkbox);
+
+      // Unlike highlighting-only settings, this one changes the layout
+      // itself (dagre compound clustering), so it must re-run getLayoutedElements.
+      await waitFor(() => {
+        expect(layoutUtils.getLayoutedElements).toHaveBeenCalledTimes(2);
+      });
+      expect(layoutUtils.getLayoutedElements).toHaveBeenLastCalledWith(
+        expect.anything(),
+        expect.anything(),
+        undefined,
+        true
+      );
+    });
+
     it('should toggle lock nodes setting', async () => {
       const user = userEvent.setup();
 
@@ -445,5 +543,16 @@ describe('GraphView', () => {
       expect(searchInput).toHaveValue('');
     });
   });
+
+  // Note: the "Focus on this node" button only appears once a node is
+  // selected, and selecting a node (via a graph click or a search
+  // suggestion) looks the node up in the local `nodes` state — which this
+  // file's reactflow mock always returns as `[]` (see the mock's own
+  // comments above). That's a pre-existing test-infrastructure gap shared
+  // by every node-selection path, not specific to focus mode, so entering
+  // focus mode isn't exercised here; computeNeighborhood/buildDependencyTree
+  // (neighborhood.test.ts, buildDependencyTree.test.ts) and the tree pane
+  // itself (DependencyTree.test.tsx) carry the real test coverage, and the
+  // end-to-end flow is verified manually against a live graph.
 });
 

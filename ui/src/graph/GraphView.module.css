@@ -16,8 +16,8 @@
   align-items: center;
   gap: 8px;
   padding: 16px;
-  background-color: #333333;
-  border-bottom: 1px solid #3e3e42;
+  background-color: var(--bg-elevated);
+  border-bottom: 1px solid var(--border-color);
 }
 
 /* Search Container - Modern Flat Design */
@@ -38,7 +38,7 @@
   left: 12px;
   width: 16px;
   height: 16px;
-  color: #6e7681;
+  color: var(--text-tertiary);
   pointer-events: none;
   transition: color 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -46,9 +46,9 @@
 .searchInput {
   width: 100%;
   padding: 10px 14px 10px 38px;
-  background-color: #2d2d30;
-  color: #cccccc;
-  border: 1px solid #3e3e42;
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
   border-radius: 6px;
   font-size: 14px;
   font-weight: 400;
@@ -65,7 +65,7 @@
 .searchInput:focus {
   outline: none;
   background-color: #323236;
-  border-color: #E0234E;
+  border-color: var(--accent-color);
   box-shadow: 0 0 0 3px rgba(224, 35, 78, 0.12), 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
@@ -74,7 +74,7 @@
 }
 
 .searchInput::placeholder {
-  color: #6e7681;
+  color: var(--text-tertiary);
   font-weight: 400;
 }
 
@@ -84,7 +84,7 @@
   top: calc(100% + 8px);
   left: 0;
   right: 0;
-  background-color: #2d2d30;
+  background-color: var(--bg-tertiary);
   border: 1px solid #4a4a4e;
   border-radius: 8px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.3);
@@ -180,7 +180,7 @@
 }
 
 .suggestionType {
-  color: #9d9d9d;
+  color: var(--text-secondary);
   font-size: 11px;
   font-weight: 500;
   text-transform: uppercase;
@@ -214,7 +214,7 @@
 
 /* Settings Dropdown - Modern Flat Design */
 .settingsDropdown {
-  background-color: #2d2d30 !important;
+  background-color: var(--bg-tertiary) !important;
   border: 1px solid #4a4a4e !important;
   border-radius: 8px !important;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.3) !important;
@@ -299,7 +299,7 @@
 .settingDescription {
   font-size: 12px;
   font-weight: 400;
-  color: #9d9d9d;
+  color: var(--text-secondary);
   line-height: 1.5;
   letter-spacing: 0.01em;
 }
@@ -317,9 +317,9 @@
 .graphContainer {
   position: relative;
   flex: 1;
-  background-color: #1e1e1e;
+  background-color: var(--bg-primary);
   border-radius: 8px;
-  border: 1px solid #3e3e42;
+  border: 1px solid var(--border-color);
   overflow: hidden;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
@@ -329,51 +329,111 @@
   position: absolute;
   top: 16px;
   right: 16px;
-  width: 320px;
-  background-color: #252526;
-  border: 1px solid #3e3e42;
-  border-radius: 8px;
-  padding: 20px;
+  width: 300px;
+  background-color: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 16px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
   z-index: 10;
   max-height: calc(100% - 32px);
   overflow-y: auto;
 }
 
-.nodeDetails h3 {
-  font-size: 18px;
-  font-weight: 600;
-  color: #cccccc;
-  margin-bottom: 16px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid #3e3e42;
-}
-
-.detailRow {
+.nodeDetailsHeader {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  padding-bottom: 12px;
   margin-bottom: 12px;
+  border-bottom: 1px solid var(--border-color);
 }
 
-.detailRow .label {
-  font-size: 12px;
+.nodeDetailsName {
+  font-size: 15px;
   font-weight: 600;
-  color: #9d9d9d;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.detailRow .value {
-  font-size: 14px;
-  color: #cccccc;
+  color: var(--text-primary);
   word-break: break-word;
 }
 
+.nodeDetailsTypeBadge {
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  padding: 3px 7px;
+  border-radius: 5px;
+  white-space: nowrap;
+  color: var(--text-secondary);
+  background-color: rgba(255, 255, 255, 0.06);
+}
+
+.nodeDetailsTypeBadge[data-type="CONTROLLER"] {
+  color: var(--info-color);
+  background-color: rgba(117, 190, 255, 0.12);
+}
+
+.nodeDetailsTypeBadge[data-type="PROVIDER"] {
+  color: var(--success-color);
+  background-color: rgba(137, 209, 133, 0.12);
+}
+
+.nodeDetailsTypeBadge[data-type="ROUTE"] {
+  color: var(--accent-color);
+  background-color: rgba(224, 35, 78, 0.12);
+}
+
+.nodeDetailsTypeBadge[data-type="MISSING"] {
+  color: var(--error-color);
+  background-color: rgba(244, 135, 113, 0.12);
+}
+
+.nodeDetailsMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.nodeDetailsMetaItem {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.nodeDetailsMetaLabel {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-eyebrow);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.nodeDetailsMetaValue {
+  font-size: 13px;
+  color: var(--text-primary);
+  word-break: break-word;
+}
+
+.nodeDetailsMono {
+  font-family: 'Courier New', Courier, monospace;
+}
+
+.nodeDetailsHint {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  background-color: var(--bg-tertiary);
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin: 0 0 12px 0;
+}
+
 .nodeDetailsCloseButton {
-  margin-top: 16px;
+  margin-top: 4px;
   width: 100%;
-  background-color: #E0234E;
+  background-color: var(--accent-color);
   color: white;
   border: none;
   padding: 10px 20px;
@@ -386,7 +446,7 @@
 }
 
 .nodeDetailsCloseButton:hover {
-  background-color: #C41E44;
+  background-color: var(--accent-hover);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
 }
@@ -395,32 +455,42 @@
   transform: translateY(0);
 }
 
-/* Missing Dependency Styles */
-.missingDependencySection {
-  margin-top: 12px;
+/* Missing Dependency Section */
+.nodeDetailsMissingSection {
+  margin-top: 4px;
   padding-top: 12px;
-  border-top: 1px solid #4a5568;
+  border-top: 1px solid var(--border-color);
 }
 
-.missingDependencyLabel {
-  color: #DC2626;
-  font-weight: bold;
+.severityLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.severityLabel[data-severity="error"] {
+  color: var(--error-color);
+}
+
+.severityIcon {
+  flex-shrink: 0;
 }
 
 .missingDependencyList {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  margin-top: 3px;
 }
 
 .missingDependencyItem {
   font-size: 12px;
-  color: #DC2626;
-}
-
-.suggestedFix {
-  font-size: 12px;
-  color: #FFA500;
+  color: var(--text-primary);
 }
 
 /* Loading State */
@@ -429,7 +499,7 @@
   align-items: center;
   justify-content: center;
   padding: 48px;
-  color: #9d9d9d;
+  color: var(--text-secondary);
   font-size: 16px;
 }
 
@@ -446,7 +516,7 @@
 }
 
 .diagnosticsDescription {
-  color: #9d9d9d;
+  color: var(--text-secondary);
   font-size: 14px;
   margin-bottom: 24px;
   line-height: 1.6;
@@ -459,8 +529,8 @@
 }
 
 .diagnosticItem {
-  background-color: #252526;
-  border: 1px solid #3e3e42;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   padding: 16px;
 }
@@ -473,21 +543,21 @@
 }
 
 .diagnosticItemTitle {
-  color: #cccccc;
+  color: var(--text-primary);
   font-size: 16px;
   font-weight: 600;
 }
 
 .diagnosticItemType {
-  color: #9d9d9d;
+  color: var(--text-secondary);
   font-size: 12px;
-  background-color: #2d2d30;
+  background-color: var(--bg-tertiary);
   padding: 4px 8px;
   border-radius: 4px;
 }
 
 .diagnosticItemDetails {
-  color: #9d9d9d;
+  color: var(--text-secondary);
   font-size: 14px;
   margin-bottom: 8px;
 }
@@ -497,7 +567,7 @@
 }
 
 .diagnosticItemRequiredByTitle {
-  color: #9d9d9d;
+  color: var(--text-secondary);
   font-size: 12px;
   font-weight: 600;
   margin-bottom: 8px;
@@ -523,11 +593,11 @@
 .diagnosticItemSuggestedFix {
   margin-top: 12px;
   padding-top: 12px;
-  border-top: 1px solid #3e3e42;
+  border-top: 1px solid var(--border-color);
 }
 
 .diagnosticItemSuggestedFixLabel {
-  color: #9d9d9d;
+  color: var(--text-secondary);
   font-size: 12px;
   margin-bottom: 4px;
 }
@@ -551,18 +621,18 @@
 }
 
 :global(.react-flow__controls-button) {
-  background-color: #252526;
-  border-color: #3e3e42;
-  color: #cccccc;
+  background-color: var(--bg-secondary);
+  border-color: var(--border-color);
+  color: var(--text-primary);
 }
 
 :global(.react-flow__controls-button:hover) {
-  background-color: #2d2d30;
+  background-color: var(--bg-tertiary);
 }
 
 :global(.react-flow__minimap) {
-  background-color: #252526;
-  border: 1px solid #3e3e42;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
 }
 
 /* Custom Node Styles (Global for React Flow) */
@@ -585,7 +655,7 @@
 }
 
 :global(.custom-node .node-label) {
-  color: #cccccc;
+  color: var(--text-primary);
   font-size: 12px;
   font-weight: 500;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -629,7 +699,7 @@
 
 /* Node highlight states */
 :global(.custom-node.highlighted) {
-  border-color: #E0234E;
+  border-color: var(--accent-color);
   border-width: 3px;
   box-shadow: 0 0 20px rgba(224, 35, 78, 0.5);
   z-index: 999;
@@ -660,22 +730,22 @@
 /* Selected state for different node types - preserve type colors with accent overlay */
 :global(.node-type-module.selected) {
   background: linear-gradient(135deg, rgba(224, 35, 78, 0.12) 0%, #4a5568 100%);
-  border-color: #E0234E;
+  border-color: var(--accent-color);
 }
 
 :global(.node-type-controller.selected) {
   background: linear-gradient(135deg, rgba(224, 35, 78, 0.12) 0%, #4a4a5e 100%);
-  border-color: #E0234E;
+  border-color: var(--accent-color);
 }
 
 :global(.node-type-provider.selected) {
   background: linear-gradient(135deg, rgba(224, 35, 78, 0.12) 0%, #3e4451 100%);
-  border-color: #E0234E;
+  border-color: var(--accent-color);
 }
 
 :global(.node-type-route.selected) {
   background: linear-gradient(135deg, rgba(224, 35, 78, 0.12) 0%, #424856 100%);
-  border-color: #E0234E;
+  border-color: var(--accent-color);
 }
 
 /* Hover effect for selected nodes */
@@ -794,3 +864,217 @@
   fill: #FF8800;
 }
 
+/* Module grouping (swimlane) */
+/* React Flow ships default chrome for its built-in 'group' node type
+   (translucent bg, border, padding) via this class, which would show
+   through behind/around our own .groupNode styling — reset it. */
+:global(.react-flow__node-group) {
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+
+.groupNode {
+  width: 100%;
+  height: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 12px;
+  background-color: rgba(255, 255, 255, 0.025);
+  pointer-events: none;
+}
+
+.groupNodeLabel {
+  position: absolute;
+  top: 8px;
+  left: 14px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-eyebrow);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+
+/* Focus mode chip + depth controls */
+.focusChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: 8px;
+  padding: 6px 10px;
+  background-color: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+}
+
+.focusChipLabel {
+  font-size: 13px;
+  color: var(--text-primary);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.focusDepthControls {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.focusDepthLabel {
+  font-size: 11px;
+  color: var(--text-eyebrow);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-right: 2px;
+}
+
+.focusDepthButton {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.focusDepthButton:hover {
+  color: var(--text-primary);
+  border-color: var(--text-secondary);
+}
+
+.focusDepthButtonActive {
+  background-color: var(--accent-color);
+  border-color: var(--accent-color);
+  color: white;
+}
+
+.focusCloseButton {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 2px;
+}
+
+.focusCloseButton:hover {
+  color: var(--text-primary);
+}
+
+.nodeDetailsFocusButton {
+  margin-top: 4px;
+  width: 100%;
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  padding: 9px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+}
+
+.nodeDetailsFocusButton:hover {
+  background-color: var(--bg-elevated);
+}
+
+/* Dependency tree pane */
+.treePane {
+  width: 300px;
+  flex-shrink: 0;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 16px;
+  overflow-y: auto;
+}
+
+.treeRoot {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  padding-bottom: 12px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.treeSectionLabel {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-eyebrow);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 8px 0 4px;
+}
+
+.treeChildren {
+  list-style: none;
+  margin: 0;
+  padding-left: 16px;
+}
+
+.treeEmpty {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  font-style: italic;
+  padding: 2px 0;
+}
+
+.treeNode {
+  margin: 2px 0;
+}
+
+.treeNodeRow {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.treeToggle {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 10px;
+  width: 14px;
+  flex-shrink: 0;
+  padding: 0;
+}
+
+.treeToggleSpacer {
+  width: 14px;
+  flex-shrink: 0;
+}
+
+.treeNodeName {
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 1px 4px;
+  border-radius: 3px;
+  text-align: left;
+}
+
+.treeNodeName:hover {
+  background-color: var(--bg-tertiary);
+  color: var(--accent-color);
+}
+
+.treeNodeCycle {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  font-style: italic;
+  padding: 1px 4px;
+}

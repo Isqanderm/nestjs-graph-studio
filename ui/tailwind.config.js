@@ -16,13 +16,13 @@ module.exports = {
         },
         // DevTools Color Palette
         devtools: {
-          bg: '#1e1e1e',
-          'sidebar-bg': '#252526',
-          'header-bg': '#2d2d30',
-          'toolbar-bg': '#333333',
+          bg: '#0b0909',
+          'sidebar-bg': '#111010',
+          'header-bg': '#1e1a1b',
+          'toolbar-bg': '#242021',
           'hover-bg': 'rgba(255, 255, 255, 0.05)',
           'active-bg': 'rgba(224, 35, 78, 0.15)',
-          border: '#3e3e42',
+          border: '#2a2627',
           'icon-inactive': '#9d9d9d',
           'icon-hover': '#e0e0e0',
           accent: '#E0234E',
@@ -36,19 +36,20 @@ module.exports = {
         },
         // Semantic Colors
         bg: {
-          primary: '#1e1e1e',
-          secondary: '#252526',
-          tertiary: '#2d2d30',
-          elevated: '#333333',
+          primary: '#0b0909',
+          secondary: '#111010',
+          tertiary: '#1e1a1b',
+          elevated: '#242021',
         },
         text: {
-          primary: '#cccccc',
+          primary: '#f2f0ef',
           secondary: '#9d9d9d',
           tertiary: '#6e7681',
+          eyebrow: '#867c7d',
         },
         border: {
-          DEFAULT: '#3e3e42',
-          light: '#2d2d30',
+          DEFAULT: '#2a2627',
+          light: '#1e1a1b',
         },
         accent: {
           DEFAULT: '#E0234E',
