@@ -128,7 +128,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Dependency Review
-        uses: actions/dependency-review-action@v4
+        uses: actions/dependency-review-action@v5
         continue-on-error: true  # Don't fail if Dependency Graph is not enabled
         with:
           fail-on-severity: moderate
