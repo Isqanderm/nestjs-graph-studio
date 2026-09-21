@@ -1,6 +1,6 @@
 {
   "name": "nestjs-graph-studio",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Local DevTools for NestJS applications with DI graph visualization",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
@@ -61,8 +61,7 @@
     "reflect-metadata": "^0.1.13 || ^0.2.0"
   },
   "dependencies": {
-    "@types/dagre": "^0.7.53",
-    "dagre": "^0.8.5",
+    "@dagrejs/dagre": "^3.1.1",
     "html-to-image": "^1.11.13",
     "reactflow": "^11.11.4"
   },

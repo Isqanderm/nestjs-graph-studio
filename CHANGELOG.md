@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-09-21
+
+### Security
+- Replaced the unmaintained `dagre`/`graphlib` layout dependencies with `@dagrejs/dagre`, the actively maintained continuation of the same library. This removes `lodash@4.17.21` from the dependency tree entirely, clearing its unpatched advisories (code injection via `_.template`, prototype pollution in `_.unset`/`_.omit`) along with several "unmaintained package" flags. `@dagrejs/dagre` ships its own TypeScript types, so `@types/dagre` is dropped too. The API is a drop-in replacement — no behavior changes.
+
 ## [0.2.0] - 2026-09-20
 
 ### Added
